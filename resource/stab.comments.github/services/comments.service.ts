@@ -10,9 +10,9 @@ module Blog.Article.Comments {
 		/**
 		 * Used as dependecy-injected factory.
 		 */
-		public static inlineAnnotatedConstructor: any[] = ['$http', StabGithubCommentsService];
+		public static inlineAnnotatedConstructor: any[] = ['$http', '$q', StabGithubCommentsService];
 
-		public constructor(private $http: angular.IHttpService) {};
+		public constructor(private $http: angular.IHttpService, private $q: angular.IQService) {};
 
 		/**
 		 * Gets one issue by Url.
@@ -50,8 +50,8 @@ module Blog.Article.Comments {
 			order: Common.SortOrder = Common.SortOrder.DESC,
 			since: Date = new Date(0)
 		) : angular.IPromise<Common.Optional<Common.GithubComment[]>> {
-			// e.g. https://api.github.com/repos/MrShoenel/stab-gh-comments/issues/comments/168499913
-			return this.$http.get<Common.GithubComment[]>(issueUrl + '/comments', {
+			const promiseIssue = this.issueByUrl(issueUrl);
+			const promiseComments = this.$http.get<Common.GithubComment[]>(issueUrl + '/comments', {
 				params: {
 					sort: sortBy === 'created' ? sortBy : 'updated',
 					direction: order === Common.SortOrder.ASC ? 'asc' : 'desc',
@@ -68,6 +68,21 @@ module Blog.Article.Comments {
 			}).catch(() => {
 				// return an empty optional
 				return new Common.Optional<Common.GithubComment[]>();
+			});
+
+			return this.$q.all([ promiseIssue, promiseComments ]).then((promisesVals: Common.Optional<any>[]) => {
+				const optIssue = promisesVals[0] as Common.Optional<Common.GithubIssue>;
+				const optComments = promisesVals[1] as Common.Optional<Common.GithubComment[]>;
+
+				if (optIssue.isEmpty || optComments.isEmpty) {
+					return new Common.Optional<Common.GithubComment[]>();
+				}
+
+				const user = optIssue.get.user;
+				return new Common.Optional<Common.GithubComment[]>(optComments.get.map(comment => {
+					comment.isIssueOwner = comment.user.id === user.id;
+					return comment;
+				}));
 			});
 		};
 	};

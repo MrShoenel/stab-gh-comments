@@ -95,6 +95,9 @@ module Common {
 		// Github responds with parseable string which we will parse into Dates.
 		created_at: Date;
 		updated_at: Date;
+
+		// Will be populated
+		isIssueOwner: boolean;
 	};
 
 	/**
