@@ -4,6 +4,8 @@ module.exports = function(grunt) {
 	// Dynamically loads all required grunt tasks
 	require('matchdep').filterDev('grunt-*')
 		.forEach(grunt.loadNpmTasks);
+	
+	var buildPath = './build/stab.comments.github';
 		
 	grunt.initConfig({
 		pkg: grunt.file.readJSON('package.json'),
@@ -21,16 +23,41 @@ module.exports = function(grunt) {
 		 */
 		clean: {
       all: ['./build/*'],
-			nonUglified: ['./build/**/*', '!./build/stab.comments.github.js'],
-			includedCss: ['./build/**/*.css']
+			nonUglified: [ buildPath ]
+		},
+		
+		concat: {
+			js: {
+				options: {
+					//banner: '~function(){' + grunt.util.linefeed,
+					separator: grunt.util.linefeed// + '}();~function(){' + grunt.util.linefeed,
+					//footer: grunt.util.linefeed + '}();'
+				},
+				src: [ // it has to be like this so the order is maintained
+					buildPath + '/stab.common.js',
+					buildPath + '/module.js',
+					buildPath + '/services/comments.service.js',
+					buildPath + '/services/authorization.service.js',
+					buildPath + '/directives/createPost.directive.js',
+					buildPath + '/directives/container.directive.js'
+				],
+				dest: './build/stab.comments.github.js'
+			}
 		},
 
 		/**
 		 * Tasks to copy-over specific files to specific directories.
 		 * This is usually the case if we copy something from ./resoure
-		 * over to ./public.
+		 * over to ./build.
 		 */
 		copy: {
+			html: {
+				files: [{
+					src: './resource/stab.comments.github/auth.callback.html',
+					dest: 'build/auth.callback.html'
+				}]
+			},
+
       js: {
 				files: [{
 					expand: true,
@@ -38,6 +65,29 @@ module.exports = function(grunt) {
 					src: ['**/*.js'],
 					dest: 'build/'
 				}]
+			},
+			
+			templates: {
+				files: [{
+					expand: true,
+					cwd: './resource/',
+					src: ['**/*template.html'],
+					dest: 'build/'
+				}]
+			}
+		},
+		
+		/**
+		 * This task we use to compress the templates used by the comment module.
+		 * This task is only used when --optimize is present.
+		 */
+		htmlclean: {
+			options: { },
+			templates: {
+				expand: true,
+				cwd: './build/',
+				src: '**/*template.html',
+				dest: './build/'
 			}
 		},
 		
@@ -52,11 +102,13 @@ module.exports = function(grunt) {
 						new (require('less-plugin-autoprefix'))({browsers : ["last 2 versions"]})
 					]
 				},
-				files: {
+				files: (function() {
 					// add file <=> file relation or have multiple files less'ed
 					// into one file by using path expanders ({,*}*.less)
-					'./build/stab.comments.github.css': ['./resource/**/*.less']
-				}
+					var o = {};
+					o[buildPath + '/style/style.css'] = ['./resource/**/*.less'];
+					return o;
+				})()
 			}
 		},
 		
@@ -112,12 +164,13 @@ module.exports = function(grunt) {
 		 */
 		uglify: {
 			all: {
-				mangle: true,
-				mangleProperties: true,
+				options: {
+					mangle: false,
+					mangleProperties: false
+				},
 				files: {
-					'./build/stab.comments.github.js': ['./build/**/*.js']
+					'./build/stab.comments.github.js': [ './build/stab.comments.github.js' ]
 				}
-				//files: grunt.file.expandMapping(['./build/**/*.js'], './')
 			}
 		},
 
@@ -141,31 +194,60 @@ module.exports = function(grunt) {
 	});
 	
 	grunt.registerTask('includeCss', function() {
-		var moduleContents = grunt.file.read('./build/stab.comments.github.module.js'),
-			cssContents = grunt.file.read('./build/stab.comments.github.css');
+		var modulePath = buildPath + '/module.js',
+			moduleContents = grunt.file.read(modulePath),
+			cssContents = grunt.file.read(buildPath + '/style/style.css');
 		
 		moduleContents = moduleContents.replace(/var includedCss\s*?=\s*?'';/i,
-			'var includedCss=\'' + cssContents.replace(/'/g, "\'") + '\'');
+			'var includedCss=\'' + cssContents.replace(/'/g, "\'") + '\';');
 		
-		grunt.file.write('./build/stab.comments.github.js', moduleContents);
+		grunt.file.write(modulePath, moduleContents);
+	});
+	
+	grunt.registerTask('includeTemplates', function() {
+		var templateFiles = grunt.file.expand('./build/**/*.template.html').map(function(path) {
+			return {
+				path: path,
+				fileName: path.substring(path.lastIndexOf('/') + 1),
+				content: JSON.stringify(grunt.file.read(path))
+			};
+		});
 		
-		// removed the now included CSS files:
-		grunt.task.run('clean:includedCss');
+		var getTemplate = function(fileName) {
+			return templateFiles.filter(function(t) { return t.fileName === fileName })[0];
+		};
+		
+		grunt.file.expand('./build/**/*.js').forEach(function(path) {
+			var tplRegex = /var\s+?__inline__template\s*?=\s*?'([a-z0-9\.]+)';?/ig;
+			var jsFile = grunt.file.read(path);
+			
+			if (!/var\s+?__inline__template\s*?=\s*?'([a-z0-9\.]+)';?/ig.test(jsFile)) {
+				return;
+			}
+			
+			jsFile = jsFile.replace(tplRegex, function(all, tplName) {
+				return 'var __inline__template=' + getTemplate(tplName).content + ';'
+			});
+			
+			grunt.file.write(path, jsFile);
+		});
+		
+		templateFiles.forEach(function(t) { grunt.file.delete(t.path); });
 	});
 	
 	grunt.registerTask('optimize', [
-		'ngAnnotate', 'includeCss', 'uglify', 'clean:nonUglified'
+		'ngAnnotate', 'includeCss', 'concat', 'uglify', 'clean:nonUglified'
 	]);
   
-  grunt.registerTask('default', (function(includeOptimize) {
+  grunt.registerTask('default', (function(skipOptimize) {
 		var tasks = [
-			'clean', 'tslint', 'typescript', 'less', 'copy'
+			'clean', 'tslint', 'typescript', 'less', 'copy', 'htmlclean', 'includeTemplates'
 		];
-		if (includeOptimize) {
+		if (!skipOptimize) {
 			tasks.push('optimize');
 		}
 		return tasks;
-	})(!!grunt.option('optimize')));
+	})(!!grunt.option('skip-optimize')));
   
   grunt.registerTask('watch-all', [
     'default',
