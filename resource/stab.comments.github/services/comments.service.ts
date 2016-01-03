@@ -7,7 +7,7 @@
 module Blog.Article.Comments {
 
 	export class StabGithubCommentsService {
-		
+
 		private issueCache: angular.ICacheObject;
 
 		/**
@@ -29,12 +29,13 @@ module Blog.Article.Comments {
 		 */
 		public issueByUrl(issueUrl: string): angular.IPromise<Common.Optional<Common.GithubIssue>> {
 			issueUrl = StabGithubCommentsService.normalizeIssueUrl(issueUrl);
+			const issueApiUrl = StabGithubCommentsService.toApiIssueUrl(issueUrl);
 			const issue = this.issueCache.get<Common.GithubIssue>(issueUrl);
 			if (issue) {
 				return this.$q.when(new Common.Optional(issue));
 			}
-			
-			return this.$http.get<Common.GithubIssue>(issueUrl).then(promiseCallbackArg => {
+
+			return this.$http.get<Common.GithubIssue>(issueApiUrl).then(promiseCallbackArg => {
 				const issue = promiseCallbackArg.data;
 				issue.isOpen = issue.state === 'open';
 				issue.comments = [];
@@ -84,7 +85,7 @@ module Blog.Article.Comments {
 				if (optIssue.isEmpty || optComments.isEmpty) {
 					return new Common.Optional<Common.GithubComment[]>();
 				}
-				
+
 				const processedComments = optComments.get.map(comment => {
 					return StabGithubCommentsService.processComment(comment, optIssue.get);
 				});
@@ -131,8 +132,7 @@ module Blog.Article.Comments {
 		 */
 		private createOrPatchComment(issueUrl: string, body: string, commentId?: number): angular.IPromise<Common.Optional<Common.GithubComment>> {
 			issueUrl = StabGithubCommentsService.normalizeIssueUrl(issueUrl);
-			const issueApiUrl = StabGithubCommentsService.toApiIssueUrl(issueUrl);
-			
+
 			return this.authService.accessTokenUsingExistingAuthorizationOrAuthorize.then(optToken => {
 				if (!optToken.isPresent) {
 					return this.$q.when(new Common.Optional<Common.GithubComment>());
@@ -141,6 +141,12 @@ module Blog.Article.Comments {
 				// POST or PATCH?
 				const isPatch = angular.isNumber(commentId);
 				const method = isPatch ? this.$http.patch : this.$http.post;
+				const issueApiUrl = StabGithubCommentsService.toApiIssueUrl(
+					// Note that PATCH-issue-URLs do NOT reference an Issue-ID, they look
+					// like: PATCH /repos/:owner/:repo/issues/comments/:id
+					// So we have to prepare that:
+					isPatch ? issueUrl.substring(0, issueUrl.lastIndexOf('/')) : issueUrl
+				);
 
 				return method<Common.GithubComment>(issueApiUrl + '/comments' + (isPatch ? '/' + commentId : ''),
 				{ body: body }, {
@@ -173,7 +179,7 @@ module Blog.Article.Comments {
 		 * @return string the normalized issue-URL.
 		 */
 		private static normalizeIssueUrl(issueUrl: string): string {
-			return (issueUrl + '').replace(/(?:https:\/\/github.com)?(?:\/)?([^/]+?\/[^/]+?\/issues\/[^/]+?)/i, "$1");
+			return (issueUrl + '').replace(/(?:https:\/\/github.com)?(?:\/)?([^/]+?\/[^/]+?\/issues\/[^/]+?)/i, '$1');
 		};
 
 		/**
