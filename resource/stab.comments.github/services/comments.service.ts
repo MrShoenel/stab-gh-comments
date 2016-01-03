@@ -1,13 +1,12 @@
 /// <reference path="../../../typings/angularjs/angular.d.ts" />
 /// <reference path="../../../typings/stab/app.common.d.ts" />
+/// <reference path="./authorization.service.ts" />
 /// <reference path="../stab.common.ts" />
 
 
 module Blog.Article.Comments {
 
 	export class StabGithubCommentsService {
-		
-		private issueCache: angular.ICacheObject;
 		
 		private issueCache: angular.ICacheObject;
 
@@ -29,13 +28,16 @@ module Blog.Article.Comments {
 		 *  contains the issue. The Optional will be empty if an error occurs.
 		 */
 		public issueByUrl(issueUrl: string): angular.IPromise<Common.Optional<Common.GithubIssue>> {
+			issueUrl = StabGithubCommentsService.normalizeIssueUrl(issueUrl);
 			const issue = this.issueCache.get<Common.GithubIssue>(issueUrl);
 			if (issue) {
 				return this.$q.when(new Common.Optional(issue));
 			}
+			
 			return this.$http.get<Common.GithubIssue>(issueUrl).then(promiseCallbackArg => {
 				const issue = promiseCallbackArg.data;
 				issue.isOpen = issue.state === 'open';
+				issue.comments = [];
 				this.issueCache.put(issueUrl, issue);
 				return new Common.Optional(issue);
 			}).catch(() => {
@@ -61,22 +63,16 @@ module Blog.Article.Comments {
 			order: Common.SortOrder = Common.SortOrder.DESC,
 			since: Date = new Date(0)
 		) : angular.IPromise<Common.Optional<Common.GithubComment[]>> {
+			issueUrl = StabGithubCommentsService.normalizeIssueUrl(issueUrl);
+			const issueApiUrl = StabGithubCommentsService.toApiIssueUrl(issueUrl);
 			const promiseIssue = this.issueByUrl(issueUrl);
-			const promiseComments = this.$http.get<Common.GithubComment[]>(issueUrl + '/comments', {
+			const promiseComments = this.$http.get<Common.GithubComment[]>(issueApiUrl + '/comments', {
 				params: {
 					sort: sortBy === 'created' ? sortBy : 'updated',
 					direction: order === Common.SortOrder.ASC ? 'asc' : 'desc',
 					since: since.toISOString()
 				}
-			}).then(promiseCallbackArg => {
-				return new Common.Optional(promiseCallbackArg.data.map(ghCommentar => {
-					ghCommentar.commenter = ghCommentar.commenter; // populate standard-property
-					ghCommentar.created_at = new Date(Date.parse(ghCommentar.created_at.toString()));
-					ghCommentar.updated_at = new Date(Date.parse(ghCommentar.updated_at.toString()));
-
-					return ghCommentar;
-				}));
-			}).catch(() => {
+			}).then(promiseCallbackArg => promiseCallbackArg.data).catch(() => {
 				// return an empty optional
 				return new Common.Optional<Common.GithubComment[]>();
 			});
