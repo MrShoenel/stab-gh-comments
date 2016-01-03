@@ -6,13 +6,19 @@
 module Blog.Article.Comments {
 
 	export class StabGithubCommentsService {
+		
+		private issueCache: angular.ICacheObject;
+		
+		private issueCache: angular.ICacheObject;
 
 		/**
 		 * Used as dependecy-injected factory.
 		 */
-		public static inlineAnnotatedConstructor: any[] = ['$http', '$q', StabGithubCommentsService];
+		public static inlineAnnotatedConstructor: any[] = ['$http', '$q', '$cacheFactory', 'StabGithubCommentsAuthorizationService', StabGithubCommentsService];
 
-		public constructor(private $http: angular.IHttpService, private $q: angular.IQService) {};
+		public constructor(private $http: angular.IHttpService, private $q: angular.IQService, private $cacheFactoryService: angular.ICacheFactoryService, private authService: StabGithubCommentsAuthorizationService) {
+			this.issueCache = $cacheFactoryService('issues');
+		};
 
 		/**
 		 * Gets one issue by Url.
@@ -23,9 +29,14 @@ module Blog.Article.Comments {
 		 *  contains the issue. The Optional will be empty if an error occurs.
 		 */
 		public issueByUrl(issueUrl: string): angular.IPromise<Common.Optional<Common.GithubIssue>> {
+			const issue = this.issueCache.get<Common.GithubIssue>(issueUrl);
+			if (issue) {
+				return this.$q.when(new Common.Optional(issue));
+			}
 			return this.$http.get<Common.GithubIssue>(issueUrl).then(promiseCallbackArg => {
 				const issue = promiseCallbackArg.data;
 				issue.isOpen = issue.state === 'open';
+				this.issueCache.put(issueUrl, issue);
 				return new Common.Optional(issue);
 			}).catch(() => {
 				// Empty optional:
