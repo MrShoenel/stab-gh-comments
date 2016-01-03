@@ -1,7 +1,5 @@
-/// <reference path="../../../typings/angularjs/angular.d.ts" />
-/// <reference path="../../../typings/angular-ui-router/angular-ui-router.d.ts" />
-/// <reference path="../../app.common.d.ts" />
-/// <reference path="../service/content.service.d.ts" />
+/// <reference path="./app.common.d.ts" />
+
 declare module Blog.Article {
     class ArticleController {
         private ContentService;

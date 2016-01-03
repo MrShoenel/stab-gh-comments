@@ -1,6 +1,6 @@
-/// <reference path="../typings/angularjs/angular.d.ts" />
-/// <reference path="../typings/oclazyload/oclazyload.d.ts" />
-/// <reference path="../typings/angular-ui-router/angular-ui-router.d.ts" />
+/// <reference path="../angularjs/angular.d.ts" />
+/// <reference path="../oclazyload/oclazyload.d.ts" />
+/// <reference path="../angular-ui-router/angular-ui-router.d.ts" />
 /**
  * This file should contain commonly used interfaces and classes.
  */

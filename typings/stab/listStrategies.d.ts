@@ -1,5 +1,5 @@
-/// <reference path="../../../typings/angularjs/angular.d.ts" />
-/// <reference path="../../app.common.d.ts" />
+/// <reference path="../angularjs/angular.d.ts" />
+/// <reference path="./app.common.d.ts" />
 declare module Blog.ArticleList {
     /**
      * The default list-strategy that chronologically orders all articles,

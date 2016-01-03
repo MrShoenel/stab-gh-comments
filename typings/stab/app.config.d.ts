@@ -1,11 +1,10 @@
-/// <reference path="../typings/angularjs/angular.d.ts" />
-/// <reference path="../typings/oclazyload/oclazyload.d.ts" />
-/// <reference path="../typings/angular-ui-router/angular-ui-router.d.ts" />
-/// <reference path="../typings/requirejs/require.d.ts" />
+/// <reference path="../angularjs/angular.d.ts" />
+/// <reference path="../oclazyload/oclazyload.d.ts" />
+/// <reference path="../angular-ui-router/angular-ui-router.d.ts" />
 /// <reference path="app.common.d.ts" />
-/// <reference path="app/service/content.service.d.ts" />
-/// <reference path="app/article/article.controller.d.ts" />
-/// <reference path="app/ui.router.stateData/ui-router-stateData.module.d.ts" />
+/// <reference path="./content.service.d.ts" />
+/// <reference path="./article.controller.d.ts" />
+/// <reference path="./ui-router-stateData.module.d.ts" />
 declare module Blog {
     function configure(module: angular.IModule): angular.IModule;
     /**

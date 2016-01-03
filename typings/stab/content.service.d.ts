@@ -1,7 +1,7 @@
-/// <reference path="../../../typings/angularjs/angular.d.ts" />
-/// <reference path="../../../typings/oclazyload/oclazyload.d.ts" />
-/// <reference path="../article/article.module.d.ts" />
-/// <reference path="../../app.common.d.ts" />
+/// <reference path="../angularjs/angular.d.ts" />
+/// <reference path="..//oclazyload/oclazyload.d.ts" />
+/// <reference path="./article.module.d.ts" />
+/// <reference path="./app.common.d.ts" />
 declare module Blog.Service {
     /**
      * The service that provides data to controllers.
