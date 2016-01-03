@@ -24,7 +24,7 @@ module Blog.Article.Comments {
 		 * Convenience wrapper to retrieve the access-token from the localStorage.
 		 * @return Optional<string> may containing the Token.
 		 */
-		private get accessToken(): Common.Optional<string> {
+		public get accessToken(): Common.Optional<string> {
 			return new Common.Optional<string>(
 				localStorage.getItem(this.CONFIG.get<string>('OAUTH_LOCAL_STORAGE_TOKEN_KEY')));
 		};
@@ -50,9 +50,29 @@ module Blog.Article.Comments {
 
 			// allrighty, now we gotta check the existing token and required scopes:
 			const scopes = this.CONFIG.get<string[]>('OAUTH_SCOPES').join(',');
-			return this.$http.get<boolean>(this.CONFIG.get<string>('OAUTH_AUTHORIZATION_APP_URL') + 'check/' + token + '/' + scopes)
+			return this.$http.get<boolean>(this.CONFIG.get<string>('OAUTH_AUTHORIZATION_APP_URL') + 'check/' + token.get + '/' + scopes)
 				.then(foo => true)
 				.catch(_404 => false);
+		};
+
+		/**
+		 * This method is a convenience wrapper that checks the existing authorization
+		 * using this.isUserAuthorized() and authorizes the user if not done yet. Returns
+		 * then an Optional with the accessToken.
+		 * 
+		 * @return angular.IPromise<Common.Optional<string>> an Optional containing the
+		 *  accessToken if successful; an empty one, otherwise.
+		 */
+		public get accessTokenUsingExistingAuthorizationOrAuthorize(): angular.IPromise<Common.Optional<string>> {
+			return this.isUserAuthorized.then(isAuthorizedOrNot => {
+				if (isAuthorizedOrNot) {
+					return this.accessToken;
+				}
+
+				return this.authorize().then(isAuthorized => {
+					return isAuthorized ? new Common.Optional<string>() : this.accessToken;
+				});
+			});
 		};
 
 		/**
