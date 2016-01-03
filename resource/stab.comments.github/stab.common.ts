@@ -112,6 +112,8 @@ module Common {
 		url: string;
 		state: string;
 		isOpen: boolean;
+		
+		comments: GithubComment[];
 
 		// Will be populated for convenience reasons:
 		user: GithubCommenter;
