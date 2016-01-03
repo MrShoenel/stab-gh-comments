@@ -11,7 +11,7 @@ module Common {
 		 * Note that undefined is a valid value, however.
 		 */
 		constructor(private value?: T) {
-			value = value || null;
+			this.value = value || null;
 		};
 
 		/**
@@ -112,7 +112,7 @@ module Common {
 		url: string;
 		state: string;
 		isOpen: boolean;
-		
+
 		comments: GithubComment[];
 
 		// Will be populated for convenience reasons:
