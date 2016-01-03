@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Stab Github Comments Authorization Callback</title>
+</head>
+
+<body>
+  <script type="text/javascript">
+	~function() {
+		var idx = location.search.indexOf('access_token='), token = idx === -1 ? null :
+			location.search.substring(idx).split('=')[1].trim();
+			
+		function lsTest(){
+			var test = 'test';
+			try {
+				localStorage.setItem(test, test);
+				localStorage.removeItem(test);
+				return true;
+			} catch(e) { }
+			return false;
+		};
+		
+		if (token === null) {
+			alert('The authorization token was not present. Aborting.');
+			window.close();
+			return;
+		}
+		
+		if (!lsTest()) {
+			alert('You need to have localStorage present and enabled.');
+			window.close();
+			return;
+		}
+		
+		localStorage.setItem('STAB_GITHUB_COMMENTS_OAUTH_ACCESS_TOKEN', token);
+		window.close();
+	}();
+	</script>
+</body>
+</html>
