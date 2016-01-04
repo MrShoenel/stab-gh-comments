@@ -1,6 +1,27 @@
 <div id="create-post">
-	<p>{{ createPostVm.isAuthorized }}</p>
-	<p>
-		<button ng-click="createPostVm.tryAuthorize()">Authorize</button>
-	</p>
+	<div>
+		<div>
+			<h4 ng-if="commentVm.isAuthorized" style="background-image:url({{ commentVm.authenticatedUser.avatar_url }});">{{ commentVm.authenticatedUser.login }}</h4>
+			<small ng-if="!commentVm.isAuthorized">
+				You need to sign in to Github and authorize this app for commenting.
+			</small>
+			<div ng-if="commentVm.isAuthorized" class="btn-group pull-right" ng-model="showCreatePostMode" ng-init="showCreatePostMode = false" ng-class="{'open' : showCreatePostMode }">
+				<button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" ng-click="showCreatePostMode = !showCreatePostMode">Mode&nbsp;<span class="caret"></span>
+				</button>
+				<ul class="dropdown-menu" ng-model="createPostMode" ng-init="createPostMode = 'write'">
+					<li ng-click="showCreatePostMode = false; createPostMode = 'write';" ng-class="{'active': createPostMode == 'write'}"><a href>Write</a></li>
+					<li ng-click="showCreatePostMode = false; createPostMode = 'preview';" ng-class="{'active': createPostMode == 'preview'}"><a href>Preview</a></li>
+				</ul>
+			</div>
+		</div>
+		<div>
+			<textarea ng-disabled="!commentVm.isAuthorized" placeholder="Your comment goes here. Markdown is enabled. Be nice :)" ng-model="commentBody" ng-init="commentBody = '';"></textarea>
+		</div>
+		<div class="pull-right">
+			<button ng-if="commentVm.isAuthorized" type="button" class="btn" ng-click="commentVm.postComment(commentBody)">Post comment</button>
+			<button ng-if="!commentVm.isAuthorized" type="button" class="btn btn-primary" ng-click="commentVm.tryAuthorize()">Authorize&nbsp;<span class="glyphicon glyphicon-log-in"></span>
+			</button>
+		</div>
+		<div class="clearfix"></div>
+	</div>
 </div>
