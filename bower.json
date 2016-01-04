@@ -1,0 +1,28 @@
+{
+  "name": "mrsh-stab-comments",
+  "description": "This is a comment module for Stab that uses Github-comments.",
+  "authors": [
+    "Sebastian Hönel <development@hoenel.net>"
+  ],
+  "license": "MIT",
+  "keywords": [
+    "stab",
+    "github",
+    "comments"
+  ],
+  "homepage": "https://github.com/MrShoenel/stab-gh-comments",
+  "moduleType": [
+    "globals"
+  ],
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "./resource/bower",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "angular-markdown-directive": "~0.3.1"
+  }
+}

@@ -23,7 +23,8 @@ module.exports = function(grunt) {
 		 */
 		clean: {
       all: ['./build/*'],
-			nonUglified: [ buildPath ]
+			nonUglified: [ buildPath ],
+			bowerBuild: [ './build/bower' ]
 		},
 		
 		concat: {
@@ -31,7 +32,11 @@ module.exports = function(grunt) {
 				options: {
 					separator: grunt.util.linefeed
 				},
-				src: [ // it has to be like this so the order is maintained
+				src: [
+					// bower-dependencies for angular-markdown-directive:
+					'./build/bower/**/*.js',
+					
+					// it has to be like this so the order is maintained
 					buildPath + '/stab.common.js',
 					buildPath + '/transformers/articleWithComments.transformer.js',
 					buildPath + '/module.js',
@@ -64,7 +69,11 @@ module.exports = function(grunt) {
 				files: [{
 					expand: true,
 					cwd: './resource/',
-					src: ['**/*.js'],
+					src: ['**/*.js', '!bower/**/*', // Bower is handled separately
+						'bower/angular-sanitize/angular-sanitize.js',
+						'bower/showdown/src/showdown.js',
+						'bower/angular-markdown-directive/markdown.js'
+					],
 					dest: 'build/'
 				}]
 			},
@@ -238,7 +247,7 @@ module.exports = function(grunt) {
 	});
 	
 	grunt.registerTask('optimize', [
-		'ngAnnotate', 'includeCss', 'concat', 'uglify', 'clean:nonUglified'
+		'ngAnnotate', 'includeCss', 'concat', 'uglify', 'clean:nonUglified', 'clean:bowerBuild'
 	]);
   
   grunt.registerTask('default', (function(skipOptimize) {

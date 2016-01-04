@@ -19,8 +19,11 @@ module Blog.Article.Comments {
 				addStylesToHead();
 			}
 
-			return angular.module('blogapp.article.stab-gh-comments', [])
-				.constant('CONFIG_COMMENTS', new Common.Constants()
+			return angular.module('blogapp.article.stab-gh-comments', [
+				// The following two are for markdown:
+				'ngSanitize',
+				'btford.markdown'
+			]).constant('CONFIG_COMMENTS', new Common.Constants()
 					// This is our app's ID that we use to authorize a commenter.
 					.add('OAUTH_CLIENT_ID', 'ddd88d5a03c3e91978f3')
 					// The scopes we are going to obtain
