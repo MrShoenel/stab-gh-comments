@@ -1,1 +1,36 @@
-<stab-github-comments-create-post></stab-github-comments-create-post>
+<div id="stab-github-comments-container">
+	<hr />
+	<h3>Comments</h3>
+	<!-- the create-post directive: -->
+	<stab-github-comments-create-post></stab-github-comments-create-post>
+	
+	<!-- the comments-list -->
+	<div ng-if="commentVm.comments.length > 0">
+		<hr id="poster-and-comments-separator" />
+		<div class="comment media" ng-repeat="comment in commentVm.comments track by comment.id" ng-class="{ 'my-comment': comment.isIssueOwner }">
+			<div class="media-left">
+				<img ng-attr-src="{{ comment.user.avatar_url }}" />
+			</div>
+			<div class="media-body">
+				<h4>
+					<a href="https://github.com/{{ comment.user.login }}" target="_blank">{{ comment.user.login }}</a>
+					<span ng-if="comment.isIssueOwner" class="label label-info">Owner</span>
+					<span ng-if="comment.isDeletable" ng-click="commentVm.editComment(comment)" class="label label-warning">
+						Edit&nbsp;<span class="glyphicon glyphicon-edit"></span>
+					</span>
+					<span ng-if="comment.isDeletable" ng-click="commentVm.deleteComment(comment)" class="label label-danger">
+						Delete&nbsp;<span class="glyphicon glyphicon-remove"></span>
+					</span>
+					<br>
+					<small>wrote on {{ comment.created_at.toLocaleDateString() }} @ {{ comment.created_at.toLocaleTimeString() }}<span ng-if="comment.updated_at"> and updated on {{ comment.updated_at.toLocaleDateString() }} @ {{ comment.updated_at.toLocaleTimeString() }}</span></small>
+				</h4>
+				<hr />
+				<p>{{ comment.body }}</p>
+			</div>
+		</div>
+	</div>
+
+	<div ng-if="!commentVm.comments.length" class="jumbotron text-center">
+		<h4>Currently, no comments exist. Be the first to write one!</h4>
+	</div>
+</div>
