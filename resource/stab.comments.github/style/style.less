@@ -61,6 +61,12 @@ div#stab-github-comments-container {
 					&[ng-click] {
 						cursor: pointer;
 					}
+					
+					&[disabled],
+					&.disabled {
+						opacity: .5;
+						cursor: not-allowed;
+					}
 				}
 				
 				hr {
