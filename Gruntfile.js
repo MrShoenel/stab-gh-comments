@@ -29,15 +29,17 @@ module.exports = function(grunt) {
 		concat: {
 			js: {
 				options: {
-					//banner: '~function(){' + grunt.util.linefeed,
-					separator: grunt.util.linefeed// + '}();~function(){' + grunt.util.linefeed,
-					//footer: grunt.util.linefeed + '}();'
+					separator: grunt.util.linefeed
 				},
 				src: [ // it has to be like this so the order is maintained
 					buildPath + '/stab.common.js',
+					buildPath + '/transformers/articleWithComments.transformer.js',
 					buildPath + '/module.js',
-					buildPath + '/services/comments.service.js',
 					buildPath + '/services/authorization.service.js',
+					buildPath + '/services/user.service.js',
+					buildPath + '/services/comments.service.js',
+					buildPath + '/controllers/containerDirective.controller.js',
+					buildPath + '/controllers/createPostDirective.controller.js',
 					buildPath + '/directives/createPost.directive.js',
 					buildPath + '/directives/container.directive.js'
 				],
