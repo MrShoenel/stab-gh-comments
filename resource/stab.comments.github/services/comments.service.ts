@@ -1,6 +1,7 @@
 /// <reference path="../../../typings/angularjs/angular.d.ts" />
 /// <reference path="../../../typings/stab/app.common.d.ts" />
 /// <reference path="./authorization.service.ts" />
+/// <reference path="./user.service.ts" />
 /// <reference path="../stab.common.ts" />
 
 
@@ -13,9 +14,9 @@ module Blog.Article.Comments {
 		/**
 		 * Used as dependecy-injected factory.
 		 */
-		public static inlineAnnotatedConstructor: any[] = ['$http', '$q', '$cacheFactory', 'StabGithubCommentsAuthorizationService', StabGithubCommentsService];
+		public static inlineAnnotatedConstructor: any[] = ['$http', '$q', '$cacheFactory', 'StabGithubCommentsAuthorizationService', 'StabGithubCommentsUserService', StabGithubCommentsService];
 
-		public constructor(private $http: angular.IHttpService, private $q: angular.IQService, private $cacheFactoryService: angular.ICacheFactoryService, private authService: StabGithubCommentsAuthorizationService) {
+		public constructor(private $http: angular.IHttpService, private $q: angular.IQService, private $cacheFactoryService: angular.ICacheFactoryService, private authService: StabGithubCommentsAuthorizationService, private userService: StabGithubCommentsUserService) {
 			this.issueCache = $cacheFactoryService('issues');
 		};
 
@@ -73,7 +74,7 @@ module Blog.Article.Comments {
 					direction: order === Common.SortOrder.ASC ? 'asc' : 'desc',
 					since: since.toISOString()
 				}
-			}).then(promiseCallbackArg => promiseCallbackArg.data).catch(() => {
+			}).then(promiseCallbackArg => new Common.Optional(promiseCallbackArg.data)).catch(() => {
 				// return an empty optional
 				return new Common.Optional<Common.GithubComment[]>();
 			});
@@ -88,7 +89,8 @@ module Blog.Article.Comments {
 
 				const processedComments = optComments.get.map(comment => {
 					return StabGithubCommentsService.processComment(comment, optIssue.get);
-				});
+				}).sort((a, b) => Date.parse(a[sortBy === 'created' ? 'created_at' : 'updated_at']) > Date.parse(b[sortBy === 'created' ? 'created_at' : 'updated_at']) ? (order === Common.SortOrder.ASC ? 1 : -1) : (order === Common.SortOrder.ASC ? -1 : 1));
+				this.setCommentDeletableFlag(processedComments);
 
 				// Set the comments to the issue:
 				optIssue.get.comments = processedComments;
@@ -102,8 +104,8 @@ module Blog.Article.Comments {
 		 * 
 		 * @see this.createOrPatchComment(..)
 		 */
-		public patchComment(issueUrl: string, body: string, commentId: number): angular.IPromise<Common.Optional<Common.GithubComment>> {
-			return this.createOrPatchComment(issueUrl, body, commentId);
+		public patchComment(issueUrl: string, body: string, comment: Common.GithubComment): angular.IPromise<Common.Optional<Common.GithubComment>> {
+			return this.createOrPatchComment(issueUrl, body, comment);
 		};
 
 		/**
@@ -124,13 +126,13 @@ module Blog.Article.Comments {
 
 		/**
 		 * Creates or patches a new comment using authorization and returns it. The
-		 * action depends on whether the parameter 'commentId' is a number or not. If,
+		 * action depends on whether the parameter 'comment' is a comment or not. If,
 		 * then the action is presumed to be 'patch'; 'create', otherwise.
 		 * 
 		 * @see https://developer.github.com/v3/issues/comments/#create-a-comment
 		 * @see https://developer.github.com/v3/issues/comments/#edit-a-comment
 		 */
-		private createOrPatchComment(issueUrl: string, body: string, commentId?: number): angular.IPromise<Common.Optional<Common.GithubComment>> {
+		private createOrPatchComment(issueUrl: string, body: string, comment?: Common.GithubComment): angular.IPromise<Common.Optional<Common.GithubComment>> {
 			issueUrl = StabGithubCommentsService.normalizeIssueUrl(issueUrl);
 
 			return this.authService.accessTokenUsingExistingAuthorizationOrAuthorize.then(optToken => {
@@ -139,16 +141,16 @@ module Blog.Article.Comments {
 				}
 
 				// POST or PATCH?
-				const isPatch = angular.isNumber(commentId);
+				const isPatch = !!comment && angular.isNumber(comment.id);
 				const method = isPatch ? this.$http.patch : this.$http.post;
 				const issueApiUrl = StabGithubCommentsService.toApiIssueUrl(
 					// Note that PATCH-issue-URLs do NOT reference an Issue-ID, they look
 					// like: PATCH /repos/:owner/:repo/issues/comments/:id
-					// So we have to prepare that:
+					// (Same goes for DELETE-URLs) so we have to prepare that:
 					isPatch ? issueUrl.substring(0, issueUrl.lastIndexOf('/')) : issueUrl
 				);
 
-				return method<Common.GithubComment>(issueApiUrl + '/comments' + (isPatch ? '/' + commentId : ''),
+				return method<Common.GithubComment>(issueApiUrl + '/comments' + (isPatch ? '/' + comment.id : ''),
 				{ body: body }, {
 					headers: {
 						Authorization: 'token ' + optToken.get
@@ -158,8 +160,11 @@ module Blog.Article.Comments {
 						if (!optIssue.isPresent) {
 							throw new Error('The issue is not present.');
 						}
-						return new Common.Optional(
-							StabGithubCommentsService.processComment(promiseCallbackArg.data, optIssue.get));
+
+						const comment = StabGithubCommentsService.processComment(promiseCallbackArg.data, optIssue.get);
+						this.setCommentDeletableFlag([comment]);
+
+						return new Common.Optional(comment);
 					});
 				}).catch(() => {
 					return this.$q.when(new Common.Optional<Common.GithubComment>());
@@ -248,10 +253,13 @@ module Blog.Article.Comments {
 		 * - Populate 'isIssueOwner'-property of comment
 		 */
 		private static processComment(comment: Common.GithubComment, issue: Common.GithubIssue): Common.GithubComment {
+			const commentWasUpdated = comment.created_at !== comment.updated_at;
 			comment.commenter = comment.user; // populate standard-property
 			comment.created_at = new Date(Date.parse(comment.created_at.toString()));
-			comment.updated_at = new Date(Date.parse(comment.updated_at.toString()));
+			comment.updated_at = commentWasUpdated ?
+				new Date(Date.parse(comment.updated_at.toString())) : null;
 			comment.isIssueOwner = comment.user.id === issue.user.id;
+			comment.isDeletable = false; // default, will update once user is there
 			return comment;
 		};
 	};
