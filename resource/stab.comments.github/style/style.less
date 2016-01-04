@@ -34,7 +34,7 @@ div#stab-github-comments-container {
 			}
 			
 			div.media-body {
-				padding-left: 1ex;
+				padding: 0 1ex 1ex;
 				background-color: #f2f2f2;
 				
 				h4 {
@@ -44,6 +44,8 @@ div#stab-github-comments-container {
 					> small {
 						font-size: 75%;
 						font-style: italic;
+						display: block;
+						margin-top: 1ex;
 					}
 				}
 				
@@ -70,6 +72,18 @@ div#stab-github-comments-container {
 					margin: 0;
 				}
 			}
+			
+			/* Styles for editing an existing comment: */
+			div.edit-comment-inplace {
+				textarea {
+					display:block;
+					width:100%;
+					height:8em;
+					font-size:75%;
+					margin:0;
+					padding:.5ex;
+				}
+			}
 		}
 	}
 }
@@ -86,11 +100,12 @@ div#create-post {
 			
 			> h4 {
 				background-size:contain;
-				height:40px;
-				padding-left:45px;
-				line-height:40px;
+				height:60px;
+				padding-left:65px;
+				line-height:60px;
 				background-repeat:no-repeat;
 				display:inline-block;
+				margin: 0;
 			}
 			
 			+ div {
