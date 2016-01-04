@@ -94,10 +94,14 @@ module Common {
 
 		// Github responds with parseable string which we will parse into Dates.
 		created_at: Date;
+		// If a comment hasn't been updated, Github sets 'updated_at' to the same
+		// time as 'created_at'. In this case, we set 'updated_at' to null!
 		updated_at: Date;
 
 		// Will be populated
 		isIssueOwner: boolean;
+		// Only true if a comment was created by the current user.
+		isDeletable: boolean;
 	};
 
 	/**
