@@ -61,6 +61,12 @@ div#stab-github-comments-container {
 					&[ng-click] {
 						cursor: pointer;
 					}
+					
+					&[disabled],
+					&.disabled {
+						opacity: .5;
+						cursor: not-allowed;
+					}
 				}
 				
 				hr {
@@ -96,7 +102,6 @@ div#create-post {
 		background-color:#f4f4f4;
 		> div:first-child {
 			background-color:#eee;
-			padding:.5ex;
 			
 			> h4 {
 				background-size:contain;
@@ -124,3 +129,12 @@ div#create-post {
 	}
 }
 /* /Post */
+
+/* Fix styles for disabled buttons within button-groups: */
+div.btn-group {
+	button.btn:disabled {
+		cursor: not-allowed;
+		color: #333;
+	}
+}
+/* /Fix buttons in button groups */
