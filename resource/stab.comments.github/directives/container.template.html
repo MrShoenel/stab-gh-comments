@@ -25,7 +25,7 @@
 					<small>wrote on {{ comment.created_at.toLocaleDateString() }} @ {{ comment.created_at.toLocaleTimeString() }}<span ng-if="comment.updated_at"> and updated on {{ comment.updated_at.toLocaleDateString() }} @ {{ comment.updated_at.toLocaleTimeString() }}</span></small>
 				</h4>
 				<hr />
-				<p>{{ comment.body }}</p>
+				<p btf-markdown="comment.body"></p>
 			</div>
 		</div>
 	</div>
