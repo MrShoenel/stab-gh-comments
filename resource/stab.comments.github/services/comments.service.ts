@@ -49,7 +49,14 @@ module Blog.Article.Comments {
 		};
 
 		/**
-		 * Retrieves all comments for one issue regarding the supplied parameters.
+		 * To keep track of the parameter used for 'sortBy'. This is necessary
+		 * for when creating new comments so we know where to insert them.
+		 */
+		private issueComments_sortBy: string = 'created';
+
+		/**
+		 * Retrieves all comments for one issue regarding the supplied parameters. Note
+		 * that we internally keep track of 'sortBy'.
 		 * 
 		 * @see https://developer.github.com/v3/issues/comments/#list-comments-in-a-repository
 		 * @param issueUrl string the full URL to the issue from where you load the comments.
@@ -65,6 +72,9 @@ module Blog.Article.Comments {
 			order: Common.SortOrder = Common.SortOrder.DESC,
 			since: Date = new Date(0)
 		) : angular.IPromise<Common.Optional<Common.GithubComment[]>> {
+			// update 'sortBy'
+			this.issueComments_sortBy = sortBy === 'created' ? sortBy : 'updated';
+
 			issueUrl = StabGithubCommentsService.normalizeIssueUrl(issueUrl);
 			const issueApiUrl = StabGithubCommentsService.toApiIssueUrl(issueUrl);
 			const promiseIssue = this.issueByUrl(issueUrl);
@@ -100,12 +110,24 @@ module Blog.Article.Comments {
 		};
 
 		/**
-		 * Convenience wrapper. Patches (edits) a comment.
+		 * Convenience wrapper. Patches (edits) a comment. Assumes that the
+		 * comment already has an updated body.
 		 * 
 		 * @see this.createOrPatchComment(..)
 		 */
-		public patchComment(issueUrl: string, body: string, comment: Common.GithubComment): angular.IPromise<Common.Optional<Common.GithubComment>> {
-			return this.createOrPatchComment(issueUrl, body, comment);
+		public patchComment(issueUrl: string, comment: Common.GithubComment): angular.IPromise<Common.Optional<Common.GithubComment>> {
+			return this.createOrPatchComment(issueUrl, comment.body, comment).then(optComment => {
+				return this.issueByUrl(issueUrl).then(issue => {
+					const idxInIssue = issue.get.comments.map((comment, idx) => {
+						return { comment, idx };
+					}).filter(obj => obj.comment.id === optComment.get.id)[0].idx;
+
+					// Now replace the comment at the specified index with the patched one:
+					issue.get.comments[idxInIssue] = optComment.get;
+
+					return optComment;
+				});
+			});
 		};
 
 		/**
