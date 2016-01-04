@@ -138,9 +138,23 @@ module Blog.Article.Comments {
 		public createComment(issueUrl: string, body: string): angular.IPromise<Common.Optional<Common.GithubComment>> {
 			return this.createOrPatchComment(issueUrl, body).then(optComment => {
 				return this.issueByUrl(issueUrl).then(issue => {
-					// Prepend the new comment to its issue; comments are sorted from
-					// newest to oldest, so we have to unshift.
-					issue.get.comments.unshift(optComment.get);
+					// Now we have to check how the issue comments are sorted and either
+					// prepend (newest first) or append this comment. We will have to
+					// check our internal parameters for that.
+					if (issue.get.comments.length === 0) {
+						issue.get.comments.push(optComment.get);
+					} else {
+						const timeKey = this.issueComments_sortBy === 'created' ? 'created_at' : 'updated_at';
+						const tsFirst = issue.get.comments[0][timeKey].getTime();
+						const tsLast = issue.get.comments[issue.get.comments.length - 1][timeKey].getTime();
+						const newestFirst = (tsFirst - tsLast) >= 0;
+
+						if (newestFirst) {
+							issue.get.comments.unshift(optComment.get); // Prepend comment
+						} else {
+							issue.get.comments.push(optComment.get);
+						}
+					}
 					return optComment;
 				});
 			});
