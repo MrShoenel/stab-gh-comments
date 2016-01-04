@@ -7,6 +7,14 @@ module Blog.Article.Comments {
 	export class StabGithubCommentsAuthorizationService {
 
 		/**
+		 * Deferred and Promise that resolve once the user is authorized.
+		 */
+		private userAuthorizedDeferred: angular.IDeferred<void>;
+		public get userAuthorizedPromise(): angular.IPromise<void> {
+			return this.userAuthorizedDeferred.promise;
+		};
+
+		/**
 		 * Property which we use to check if the localStorage is available. We
 		 * use it to store the access token.
 		 */
@@ -29,6 +37,13 @@ module Blog.Article.Comments {
 				localStorage.getItem(this.CONFIG.get<string>('OAUTH_LOCAL_STORAGE_TOKEN_KEY')));
 		};
 
+		/**
+		 * Used to reset (delete) an invalid token.
+		 */
+		private resetAccessToken(): void {
+			localStorage.removeItem(this.CONFIG.get<string>('OAUTH_LOCAL_STORAGE_TOKEN_KEY'));
+		};
+
 		private localStorageInterval: number = null;
 
 		/**
@@ -36,7 +51,9 @@ module Blog.Article.Comments {
 		 */
 		public static inlineAnnotatedConstructor: any[] = ['$http', '$q', 'CONFIG_COMMENTS', StabGithubCommentsAuthorizationService];
 
-		public constructor(private $http: angular.IHttpService, private $q: angular.IQService, private CONFIG: Common.Constants) {};
+		public constructor(private $http: angular.IHttpService, private $q: angular.IQService, private CONFIG: Common.Constants) {
+			this.userAuthorizedDeferred = $q.defer<void>();
+		};
 
 		/**
 		 * This function uses the access token stored in the localStorage and
@@ -50,9 +67,13 @@ module Blog.Article.Comments {
 
 			// allrighty, now we gotta check the existing token and required scopes:
 			const scopes = this.CONFIG.get<string[]>('OAUTH_SCOPES').join(',');
-			return this.$http.get<boolean>(this.CONFIG.get<string>('OAUTH_AUTHORIZATION_APP_URL') + 'check/' + token.get + '/' + scopes)
-				.then(foo => true)
-				.catch(_404 => false);
+			return this.$http.get<boolean>(this.CONFIG.get<string>('OAUTH_AUTHORIZATION_APP_URL') + 'check/' + token.get + '/' + scopes).then(foo => {
+				this.userAuthorizedDeferred.resolve();
+				return true;
+			}).catch(_404 => {
+				this.resetAccessToken();
+				return false;
+			});
 		};
 
 		/**
@@ -70,7 +91,12 @@ module Blog.Article.Comments {
 				}
 
 				return this.authorize().then(isAuthorized => {
-					return isAuthorized ? new Common.Optional<string>() : this.accessToken;
+					if (isAuthorized) {
+						this.userAuthorizedDeferred.resolve();
+						return this.accessToken;
+					}
+					return new Common.Optional<string>();
+					// [SIC!] return isAuthorized ? new Common.Optional<string>() : this.accessToken;
 				});
 			});
 		};
@@ -93,7 +119,7 @@ module Blog.Article.Comments {
 		 * - once present, check the integrity of the token and
 		 * - finally close the previously opened window.
 		 */
-		public authorize(): angular.IPromise<boolean> {
+		private authorize(): angular.IPromise<boolean> {
 			if (!StabGithubCommentsAuthorizationService.isLocalStorageAvailable) {
 				return this.$q.when(false);
 			}
