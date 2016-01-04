@@ -12,6 +12,15 @@ module Blog.Article.Comments {
 		public isWaitingForAuthorization: boolean = false;
 		public authenticatedUser: Common.GithubCommenter = null;
 
+		/**
+		 * Used to indicate whether this controller is currently busy. Note that
+		 * this returns true if this controller or its parent-controller is busy.
+		 */
+		private _isBusy: boolean = false;
+		public get isBusy(): boolean {
+			return this._isBusy || this.isWaitingForAuthorization;
+		};
+
 		private _issueUrl: string;
 
 		public get issueUrl(): string {
@@ -40,14 +49,21 @@ module Blog.Article.Comments {
 
 		public constructor(private $scope: StabGithubCommentsContainerDirectiveControllerScope, private $q: angular.IQService, private commentService: StabGithubCommentsService, private authService: StabGithubCommentsAuthorizationService, private userService: StabGithubCommentsUserService) {
 			this._issueUrl = $scope.issueUrl;
+			this._isBusy = true;
+
 			// Load the comments by first loading the issue:
-			commentService.issueByUrl(this.issueUrl).then(optIssue => {
+			const promise_issue = commentService.issueByUrl(this.issueUrl).then(optIssue => {
 				commentService.commentsForIssueByUrl(this.issueUrl).then(optComments => {
 					// Note that we do not use the comments directly because they are
 					// part of the issue and nicely managed by the comment-service.
 					this._issue = optIssue.get;
 				});
 			});
+
+			// Check if user is currently authorized:
+			const promise_auth = authService.isUserAuthorized
+				.then(isAuthorized => this.isAuthorized = isAuthorized)
+				.finally(() => this.isWaitingForAuthorization = false);
 
 			// Wait for the user:
 			userService.authenticatedUser.then(optUser => {
@@ -56,10 +72,11 @@ module Blog.Article.Comments {
 				}
 			});
 
-			// Check if user is currently authorized:
-			authService.isUserAuthorized
-				.then(isAuthorized => this.isAuthorized = isAuthorized)
-				.finally(() => this.isWaitingForAuthorization = false);
+			// Now wait for some actions to finish.
+			this._isBusy = true;
+			$q.all([ promise_issue, promise_auth ]).finally(() => {
+				this._isBusy = false;
+			});
 		};
 
 		////////////////////////////////
@@ -88,14 +105,19 @@ module Blog.Article.Comments {
 				return this.$q.when();
 			}
 
-			return this.commentService.deleteComment(this.issueUrl, comment);
+			this._isBusy = true;
+			return this.commentService.deleteComment(this.issueUrl, comment)
+				.finally(() => this._isBusy = false);
 		};
 
 		/**
-		 * 
+		 * Patches one comment. Upon success, swaps out the old comment
+		 * in the issue.
 		 */
 		public patchComment(comment: Common.EditableComment & Common.GithubComment): angular.IPromise<any> {
-			return this.commentService.patchComment(this.issueUrl, comment);
+			this._isBusy = true;
+			return this.commentService.patchComment(this.issueUrl, comment)
+				.finally(() => this._isBusy = false);
 		};
 	};
 

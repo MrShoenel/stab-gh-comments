@@ -7,7 +7,7 @@
 			</small>
 		</div>
 		<div>
-			<textarea ng-model="post.commentBody" ng-init="post.commentBody = '';" ng-show="post.createPostMode == 'write' || post.createPostMode == 'both';" ng-disabled="!commentVm.isAuthorized" placeholder="Your comment goes here. Markdown is enabled. Be nice :)"></textarea>
+			<textarea ng-model="post.commentBody" ng-init="post.commentBody = '';" ng-show="!commentVm.isAuthorized || post.createPostMode == 'write' || post.createPostMode == 'both';" ng-disabled="!commentVm.isAuthorized || createPostVm.isBusy" placeholder="Your comment goes here. Markdown is enabled. Be nice :)"></textarea>
 			<div ng-show="post.createPostMode == 'preview' || post.createPostMode == 'both';">
 				<h6 ng-show="post.createPostMode == 'both';">Preview:</h6>
 				<div btf-markdown="post.commentBody"></div>
@@ -15,7 +15,7 @@
 		</div>
 		<div class="pull-right">
 			<div ng-if="commentVm.isAuthorized" class="btn-group dropup" ng-model="post.showCreatePostMode" ng-init="post.showCreatePostMode = false" ng-class="{'open' : post.showCreatePostMode }">
-				<button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" ng-click="post.showCreatePostMode = !post.showCreatePostMode">Mode: <i>{{ post.createPostMode }}</i>&nbsp;<span class="caret"></span>
+				<button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" ng-click="post.showCreatePostMode = !post.showCreatePostMode" ng-disabled="createPostVm.isBusy">Mode: <i>{{ post.createPostMode }}</i>&nbsp;<span class="caret"></span>
 				</button>
 				<ul class="dropdown-menu" ng-model="post.createPostMode" ng-init="post.createPostMode = 'write'">
 					<li ng-click="post.showCreatePostMode = false; post.createPostMode = 'write';" ng-class="{'active': post.createPostMode == 'write'}"><a href>Write</a></li>
@@ -23,8 +23,10 @@
 					<li ng-click="post.showCreatePostMode = false; post.createPostMode = 'both';" ng-class="{'active': post.createPostMode == 'both'}"><a href>Both</a></li>
 				</ul>
 			</div>
-			<button ng-if="commentVm.isAuthorized" type="button" class="btn" ng-click="createPostVm.postComment(post.commentBody)">Post comment</button>
-			<button ng-if="!commentVm.isAuthorized" type="button" class="btn btn-primary" ng-click="commentVm.tryAuthorize()">Authorize&nbsp;<span class="glyphicon glyphicon-log-in"></span>
+			<button ng-if="commentVm.isAuthorized" type="button" class="btn" ng-click="createPostVm.postComment(post.commentBody);" ng-disabled="createPostVm.isBusy">Post comment</button>
+			<span ng-if="commentVm.isWaitingForAuthorization">Waiting for authorization.. </span>
+			<button ng-if="!commentVm.isAuthorized" ng-disabled="commentVm.isWaitingForAuthorization || createPostVm.isBusy" type="button" class="btn btn-primary" ng-click="commentVm.tryAuthorize()">
+				Authorize&nbsp;<span class="glyphicon glyphicon-log-in"></span>
 			</button>
 		</div>
 		<div class="clearfix"></div>

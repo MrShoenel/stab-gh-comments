@@ -9,6 +9,15 @@ module Blog.Article.Comments {
 	export class StabGithubCommentsCreatePostDirectiveController {
 
 		/**
+		 * Used to indicate whether this controller is currently busy. Note that
+		 * this returns true if this controller or its parent-controller is busy.
+		 */
+		private _isBusy: boolean = false;
+		public get isBusy(): boolean {
+			return this._isBusy || this.$scope.commentVm.isBusy;
+		};
+
+		/**
 		 * Used as dependecy-injected factory.
 		 */
 		public static inlineAnnotatedConstructor: any[] = ['$scope', '$q', 'StabGithubCommentsAuthorizationService', 'StabGithubCommentsService', 'StabGithubCommentsUserService', StabGithubCommentsCreatePostDirectiveController];
@@ -25,7 +34,10 @@ module Blog.Article.Comments {
 				return this.$q.when();
 			}
 
-			return this.commentService.createComment(this.$scope.commentVm.issueUrl, body);
+			this._isBusy = true;
+
+			return this.commentService.createComment(this.$scope.commentVm.issueUrl, body)
+				.finally(() => this._isBusy = false);
 		};
 	};
 
