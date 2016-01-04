@@ -73,6 +73,14 @@ module Common {
 	};
 
 	/**
+	 * Interface with a property that signalizes a comment which is
+	 * in the state 'edit'.
+	 */
+	export interface EditableComment extends Comment {
+		isEditing: boolean;
+	};
+
+	/**
 	 * Specialized Github interface to model a commenter from Github.
 	 */
 	export interface GithubCommenter extends Commenter {

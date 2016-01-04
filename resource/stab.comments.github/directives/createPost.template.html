@@ -5,15 +5,6 @@
 			<small ng-if="!commentVm.isAuthorized">
 				You need to sign in to Github and authorize this app for commenting.
 			</small>
-			<div ng-if="commentVm.isAuthorized" class="btn-group pull-right" ng-model="post.showCreatePostMode" ng-init="post.showCreatePostMode = false" ng-class="{'open' : post.showCreatePostMode }">
-				<button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" ng-click="post.showCreatePostMode = !post.showCreatePostMode">Mode: <i>{{ post.createPostMode }}</i>&nbsp;<span class="caret"></span>
-				</button>
-				<ul class="dropdown-menu" ng-model="post.createPostMode" ng-init="post.createPostMode = 'write'">
-					<li ng-click="post.showCreatePostMode = false; post.createPostMode = 'write';" ng-class="{'active': post.createPostMode == 'write'}"><a href>Write</a></li>
-					<li ng-click="post.showCreatePostMode = false; post.createPostMode = 'preview';" ng-class="{'active': post.createPostMode == 'preview'}"><a href>Preview</a></li>
-					<li ng-click="post.showCreatePostMode = false; post.createPostMode = 'both';" ng-class="{'active': post.createPostMode == 'both'}"><a href>Both</a></li>
-				</ul>
-			</div>
 		</div>
 		<div>
 			<textarea ng-model="post.commentBody" ng-init="post.commentBody = '';" ng-show="post.createPostMode == 'write' || post.createPostMode == 'both';" ng-disabled="!commentVm.isAuthorized" placeholder="Your comment goes here. Markdown is enabled. Be nice :)"></textarea>
@@ -23,7 +14,16 @@
 			</div>
 		</div>
 		<div class="pull-right">
-			<button ng-if="commentVm.isAuthorized" type="button" class="btn" ng-click="commentVm.postComment(post.commentBody)">Post comment</button>
+			<div ng-if="commentVm.isAuthorized" class="btn-group dropup" ng-model="post.showCreatePostMode" ng-init="post.showCreatePostMode = false" ng-class="{'open' : post.showCreatePostMode }">
+				<button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" ng-click="post.showCreatePostMode = !post.showCreatePostMode">Mode: <i>{{ post.createPostMode }}</i>&nbsp;<span class="caret"></span>
+				</button>
+				<ul class="dropdown-menu" ng-model="post.createPostMode" ng-init="post.createPostMode = 'write'">
+					<li ng-click="post.showCreatePostMode = false; post.createPostMode = 'write';" ng-class="{'active': post.createPostMode == 'write'}"><a href>Write</a></li>
+					<li ng-click="post.showCreatePostMode = false; post.createPostMode = 'preview';" ng-class="{'active': post.createPostMode == 'preview'}"><a href>Preview</a></li>
+					<li ng-click="post.showCreatePostMode = false; post.createPostMode = 'both';" ng-class="{'active': post.createPostMode == 'both'}"><a href>Both</a></li>
+				</ul>
+			</div>
+			<button ng-if="commentVm.isAuthorized" type="button" class="btn" ng-click="createPostVm.postComment(post.commentBody)">Post comment</button>
 			<button ng-if="!commentVm.isAuthorized" type="button" class="btn btn-primary" ng-click="commentVm.tryAuthorize()">Authorize&nbsp;<span class="glyphicon glyphicon-log-in"></span>
 			</button>
 		</div>

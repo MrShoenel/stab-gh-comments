@@ -11,9 +11,21 @@ module Blog.Article.Comments {
 		/**
 		 * Used as dependecy-injected factory.
 		 */
-		public static inlineAnnotatedConstructor: any[] = ['$scope', 'StabGithubCommentsAuthorizationService', 'StabGithubCommentsService', 'StabGithubCommentsUserService', StabGithubCommentsCreatePostDirectiveController];
+		public static inlineAnnotatedConstructor: any[] = ['$scope', '$q', 'StabGithubCommentsAuthorizationService', 'StabGithubCommentsService', 'StabGithubCommentsUserService', StabGithubCommentsCreatePostDirectiveController];
 
-		public constructor(private $scope: StabGithubCommentsCreatePostDirectiveControllerScope, private authService: StabGithubCommentsAuthorizationService, private commentsService: StabGithubCommentsService, private userService: StabGithubCommentsUserService) {
+		public constructor(private $scope: StabGithubCommentsCreatePostDirectiveControllerScope, private $q: angular.IQService, private authService: StabGithubCommentsAuthorizationService, private commentService: StabGithubCommentsService, private userService: StabGithubCommentsUserService) {
+		};
+
+		/**
+		 * Posts a new comment.
+		 */
+		public postComment(body: string): angular.IPromise<any> {
+			if (!body || (body + '').trim() === '') {
+				alert('Your comment must not be empty.');
+				return this.$q.when();
+			}
+
+			return this.commentService.createComment(this.$scope.commentVm.issueUrl, body);
 		};
 	};
 

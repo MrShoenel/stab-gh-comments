@@ -12,44 +12,6 @@ module Blog.Article.Comments {
 
 			controllerAs: 'createPostVm',
 			controller: 'StabGithubCommentsCreatePostDirectiveController',
-			/*controller: ['StabGithubCommentsAuthorizationService', 'StabGithubCommentsService', 'StabGithubCommentsUserService', (authService: StabGithubCommentsAuthorizationService, commentService: StabGithubCommentsService, userService: StabGithubCommentsUserService) => {
-				var ___________dummy_id: Common.GithubComment;
-				var ctrl = {
-					isAuthorized: false,
-					isWaitingForAuthorization: false,
-					authenticatedUser: <Common.GithubCommenter>null,
-
-					tryAuthorize: (): void => {
-						ctrl.isWaitingForAuthorization = true;
-						authService.accessTokenUsingExistingAuthorizationOrAuthorize
-							.then(isAuthorized => ctrl.isAuthorized = true)
-							.finally(() => ctrl.isWaitingForAuthorization = false);
-					},
-
-					createComment: (): void => {
-						commentService.createComment('/MrShoenel/stab-gh-comments/issues/1', 'A test comment').then(optComment => ___________dummy_id = optComment.get);
-					},
-
-					updateComment: (): void => {
-						commentService.patchComment('/MrShoenel/stab-gh-comments/issues/1', 'A patched test', ___________dummy_id);
-					},
-
-					deleteComment: (): void => {
-						commentService.deleteComment('/MrShoenel/stab-gh-comments/issues/1', ___________dummy_id);
-					}
-				};
-
-				//////
-				userService.authenticatedUser.then(optUser => ctrl.authenticatedUser = optUser.get);
-				//////
-
-				ctrl.isWaitingForAuthorization = true;
-				authService.isUserAuthorized
-					.then(isAuthorized => ctrl.isAuthorized = isAuthorized)
-					.finally(() => ctrl.isWaitingForAuthorization = false);
-
-				return ctrl;
-			}],*/
 
 			template: (scope: angular.IScope, element: angular.IAugmentedJQuery, attrs: angular.IAttributes) => {
 				var __inline__template = 'createPost.template.html';

@@ -18,7 +18,20 @@ module Blog.Article.Comments {
 			return this._issueUrl;
 		};
 
-		public comments: Common.GithubComment[];
+		private _issue: Common.GithubIssue;
+		public get issue(): Common.GithubIssue {
+			return this._issue;
+		};
+
+		/**
+		 * Public getter for the comments. Returns the issue's comments
+		 * because we do not directly access them.
+		 * 
+		 * @return Common.GithubComment[] the comments for the current issue.
+		 */
+		public get comments(): Common.GithubComment[] {
+			return this.issue ? this.issue.comments : [];
+		};
 
 		/**
 		 * Used as dependecy-injected factory.
@@ -27,8 +40,14 @@ module Blog.Article.Comments {
 
 		public constructor(private $scope: StabGithubCommentsContainerDirectiveControllerScope, private $q: angular.IQService, private commentService: StabGithubCommentsService, private authService: StabGithubCommentsAuthorizationService, private userService: StabGithubCommentsUserService) {
 			this._issueUrl = $scope.issueUrl;
-			// Load the comments:
-			commentService.commentsForIssueByUrl(this.issueUrl).then(comments => this.comments = comments.get || []);
+			// Load the comments by first loading the issue:
+			commentService.issueByUrl(this.issueUrl).then(optIssue => {
+				commentService.commentsForIssueByUrl(this.issueUrl).then(optComments => {
+					// Note that we do not use the comments directly because they are
+					// part of the issue and nicely managed by the comment-service.
+					this._issue = optIssue.get;
+				});
+			});
 
 			// Wait for the user:
 			userService.authenticatedUser.then(optUser => {
@@ -62,30 +81,21 @@ module Blog.Article.Comments {
 		};
 
 		/**
-		 * Posts a new comment.
-		 */
-		public postComment(body: string): angular.IPromise<void> {
-			if (!body || (body + '').trim() === '') {
-				alert('Your comment must not be empty.');
-				return this.$q.when();
-			}
-
-			this.commentService.createComment(this.issueUrl, body).then(optComment => {
-				this.comments.unshift(optComment.get);
-			});
-		};
-
-		/**
 		 * Deletes a given comment. The user must confirm first, however.
 		 */
-		public deleteComment(comment: Common.GithubComment): angular.IPromise<void> {
+		public deleteComment(comment: Common.GithubComment): angular.IPromise<any> {
 			if (!confirm('Do you really want to delete your comment?')) {
 				return this.$q.when();
 			}
 
-			return this.commentService.deleteComment(this.issueUrl, comment).then(success => {
-				this.comments = this.comments.filter(c => c.id !== comment.id);
-			});
+			return this.commentService.deleteComment(this.issueUrl, comment);
+		};
+
+		/**
+		 * 
+		 */
+		public patchComment(comment: Common.EditableComment & Common.GithubComment): angular.IPromise<any> {
+			return this.commentService.patchComment(this.issueUrl, comment);
 		};
 	};
 
