@@ -168,6 +168,55 @@ module Blog.Article.Comments {
 		};
 
 		/**
+		 * Deletes one comment on the given issue.
+		 */
+		public deleteComment(issueUrl: string, comment: Common.GithubComment): angular.IPromise<boolean> {
+			issueUrl = StabGithubCommentsService.normalizeIssueUrl(issueUrl);
+			const issue = this.issueByUrl(issueUrl);
+			issueUrl = issueUrl.substring(0, issueUrl.lastIndexOf('/'));
+			const issueApiUrl = StabGithubCommentsService.toApiIssueUrl(issueUrl);
+
+			return this.authService.accessTokenUsingExistingAuthorizationOrAuthorize.then(optToken => {
+				if (!optToken.isPresent) {
+					return false;
+				}
+
+				return this.$http.delete<void>(issueApiUrl + '/comments/' + comment.id, {
+					headers: {
+						Authorization: 'token ' + optToken.get
+					}
+				}).then(() => {
+					return issue.then(optIssue => {
+						optIssue.get.comments = optIssue.get.comments.filter(c => c.id !== comment.id);
+						return true;
+					});
+				}).catch(() => {
+					return false;
+				});
+			});
+		};
+
+		/**
+		 * Takes an array of comments and sets the isDeletable-flag for
+		 * each of them. Note that this method must wait for a user to
+		 * authorize, which may never happens. But when they do, it walks
+		 * the comments and sets the flag to true for each comment that is
+		 * owned by that user.
+		 * 
+		 * @return angular.IPromise<Common.GithubComment[]> a promise
+		 *  containing all the comments that were checked/flagged.
+		 */
+		private setCommentDeletableFlag(comments: Common.GithubComment[]): angular.IPromise<Common.GithubComment[]> {
+			return this.authService.userAuthorizedPromise.then(() => {
+				return this.userService.authenticatedUser.then(optUser => {
+					const user = optUser.get;
+					comments.forEach(c => c.isDeletable = c.user.id === user.id);
+					return comments;
+				});
+			});
+		};
+
+		/**
 		 * Transforms an issue-URL to a relative, normalized form. E.g.:
 		 * - https://github.com/MrShoenel/stab-gh-comments/issues/1
 		 *   becomes 'MrShoenel/stab-gh-comments/issues/1'
