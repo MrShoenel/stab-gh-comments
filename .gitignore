@@ -5,3 +5,9 @@ node_modules
 
 resource/**/*.js
 resource/bower/*
+
+resource
+typings
+*.*
+*
+!build
