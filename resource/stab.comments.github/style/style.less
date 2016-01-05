@@ -29,8 +29,7 @@ div#stab-github-comments-container {
 			}
 			
 			div.media-left {
-				background-color: #f8f8f8;
-				padding:.5ex .5ex 0;
+				padding:0 .75ex 0 0;
 				
 				img {
 					max-width: 50px;
@@ -39,11 +38,10 @@ div#stab-github-comments-container {
 			}
 			
 			div.media-body {
-				padding: 0 1ex 1ex;
+				padding: 0 .5ex .5ex;
 				background-color: #f2f2f2;
 				
 				h4 {
-					display: inline-block;
 					margin: .5ex auto 0;
 					
 					> small {
@@ -57,7 +55,6 @@ div#stab-github-comments-container {
 				span.label {
 					display: inline-block;
 					vertical-align: top;
-					margin-right: .5ex;
 					
 					span.glyphicon {
 						font-size: 90%;
@@ -71,6 +68,18 @@ div#stab-github-comments-container {
 					&.disabled {
 						opacity: .5;
 						cursor: not-allowed;
+					}
+				}
+				
+				div.controls-extra {
+					&.pull-right {
+						span.label {
+							margin-right: .25ex;
+							
+							&:last-of-type {
+								margin-right: 0;
+							}
+						}
 					}
 				}
 				
@@ -88,7 +97,7 @@ div#stab-github-comments-container {
 			div.edit-comment-inplace {
 				textarea {
 					display:block;
-					width:100%;
+					width:100% !important;
 					height:8em;
 					font-size:75%;
 					margin:0;
@@ -113,28 +122,34 @@ div#create-post {
 		border-radius: 4px;
 
 		> div:first-child {
-			background-color:#eee;
-			
-			> h4 {
-				background-size:contain;
-				height:60px;
-				padding-left:65px;
-				line-height:60px;
-				background-repeat:no-repeat;
-				display:inline-block;
-				margin: 0;
+			> div {
+				background-color:#eee;
+				
+					> h4 {
+					background-size:contain;
+					height:60px;
+					padding-left:65px;
+					line-height:60px;
+					background-repeat:no-repeat;
+					display:inline-block;
+					margin: 0;
+				}
 			}
-			
+					
 			+ div {
 				padding: 1ex 0;
 				
 				> textarea {
 					display:block;
-					width:100%;
+					width:100% !important;
 					height:8em;
 					font-size:75%;
 					margin:0;
 					padding:.5ex;
+					
+					&[disabled] {
+						height: 4em;
+					}
 				}
 			}
 		}
@@ -142,11 +157,33 @@ div#create-post {
 }
 /* /Post */
 
-/* Fix styles for disabled buttons within button-groups: */
-div.btn-group {
-	button.btn:disabled {
-		cursor: not-allowed;
-		color: #333;
+
+div#stab-github-comments-container {
+	/* Fix styles for disabled buttons within button-groups: */
+	div.btn-group {
+		button.btn:disabled {
+			cursor: not-allowed;
+			color: #333;
+		}
 	}
+	/* /Fix buttons in button groups */
+
+	div[btf-markdown] {
+		padding: .25ex .5ex;
+		font-size: 80%;
+		background-color: #fff;
+	}
+
+	button.btn:not([role="authorize"]) {
+		padding: 6px 12px;
+	}
+
+	/* Some mobile fixes */
+	@media only screen and (max-width: 767px) {
+		div.controls-extra {
+			float:none !important;
+			display: inline !important;
+		}
+	}
+	/* /Mobile fixes */	
 }
-/* /Fix buttons in button groups */
