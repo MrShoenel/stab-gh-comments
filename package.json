@@ -1,8 +1,7 @@
 {
   "name": "mrsh-stab-comments",
   "version": "1.0.0",
-  "description": "0.0.0",
-  "main": "<none>",
+  "description": "This is a comment module for Stab that uses Github-comments.",
   "scripts": {
     "postinstall": "parallelshell \"bower install --save\" \"tsd install --save\""
   },
