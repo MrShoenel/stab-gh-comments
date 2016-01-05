@@ -34,6 +34,10 @@ module Blog.Article.Comments {
 					.add('OAUTH_AUTHORIZATION_APP_URL', 'https://stab-gh-comments-authorizer.herokuapp.com/')
 					// This is the name of the key in the localStorage where we store the token:
 					.add('OAUTH_LOCAL_STORAGE_TOKEN_KEY', 'STAB_GITHUB_COMMENTS_OAUTH_ACCESS_TOKEN')
+
+					// Other configuration constants:
+					.add('ALLOW_COMMENT_EDIT', true)
+					.add('ALLOW_COMMENT_DELETE', true)
 			).config(['$anchorScrollProvider', (
 				$anchorScrollProvider: angular.IAnchorScrollProvider
 			) => {
