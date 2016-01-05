@@ -7,6 +7,7 @@ This whole comment module is currently less than **60 KB** in size! It is fully 
 * List all comments for an Issue
 * Create new comments
 * Edit and delete your own comments
+	* This can be configured and switched off as of v.1.1.1
 * Immediate markdown-preview
 * Store authorization in *localStorage* and lazily validate it once the user comes back, all in the background!
 * Get each user's and the authorized user's profile information to show avatars, names etc.
@@ -74,6 +75,15 @@ Once we got back a valid *access token*, *stab-gh-comments* re-renders the threa
 * and another comment which currently edited
 
 ![](https://raw.githubusercontent.com/MrShoenel/stab-gh-comments/develop/readme_resource/commenting_editing_reading.gif)
+
+#### Mobile view
+This comment system adapts to the available screen width. if it's less than 768px, it'll look like this (*sm*-view):
+
+![](https://raw.githubusercontent.com/MrShoenel/stab-gh-comments/develop/readme_resource/commenting_editing_reading_mobile-sm.gif)
+
+For devices with less than 400px in width, it will degrade even further (*xs*-view):
+
+![](https://raw.githubusercontent.com/MrShoenel/stab-gh-comments/develop/readme_resource/commenting_editing_reading_mobile-xs.gif)
 
 ### Badges
 Each post/comment has badges, similar to Github's commenting-system. The issue-creator has the **Owner**-badge. If you see a comment of yours and you've been authorized, you can **edit** and **delete** your own comments *in-place*!
