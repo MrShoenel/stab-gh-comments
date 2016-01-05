@@ -20,9 +20,9 @@ module Blog.Article.Comments {
 		/**
 		 * Used as dependecy-injected factory.
 		 */
-		public static inlineAnnotatedConstructor: any[] = ['$scope', '$q', 'StabGithubCommentsAuthorizationService', 'StabGithubCommentsService', 'StabGithubCommentsUserService', StabGithubCommentsCreatePostDirectiveController];
+		public static inlineAnnotatedConstructor: any[] = ['$scope', '$q', '$anchorScroll', 'StabGithubCommentsAuthorizationService', 'StabGithubCommentsService', 'StabGithubCommentsUserService', StabGithubCommentsCreatePostDirectiveController];
 
-		public constructor(private $scope: StabGithubCommentsCreatePostDirectiveControllerScope, private $q: angular.IQService, private authService: StabGithubCommentsAuthorizationService, private commentService: StabGithubCommentsService, private userService: StabGithubCommentsUserService) {
+		public constructor(private $scope: StabGithubCommentsCreatePostDirectiveControllerScope, private $q: angular.IQService, private $anchorScroll: angular.IAnchorScrollService, private authService: StabGithubCommentsAuthorizationService, private commentService: StabGithubCommentsService, private userService: StabGithubCommentsUserService) {
 		};
 
 		/**
@@ -35,9 +35,21 @@ module Blog.Article.Comments {
 			}
 
 			this._isBusy = true;
-
 			return this.commentService.createComment(this.$scope.commentVm.issueUrl, body)
-				.finally(() => this._isBusy = false);
+				.then(optComment => {
+					const domDeferred = this.$q.defer<void>();
+					const newCommentId = 'stab-github-comment-' + optComment.get.id;
+					const interval = window.setInterval(() => {
+						if (document.querySelector('#' + newCommentId)) {
+							// Empty the textarea and scroll to new comment
+							this.$scope.post.commentBody = '';
+							this.$anchorScroll(newCommentId);
+							clearInterval(interval);
+							domDeferred.resolve();
+						}
+					}, 25);
+					return domDeferred.promise;
+				}).finally(() => this._isBusy = false);
 		};
 	};
 
