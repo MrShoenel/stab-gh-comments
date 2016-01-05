@@ -7,7 +7,7 @@
 	<!-- the comments-list -->
 	<div ng-if="commentVm.comments.length > 0">
 		<hr id="poster-and-comments-separator" />
-		<div class="comment media" ng-repeat="comment in commentVm.comments track by comment.id" ng-class="{ 'my-comment': comment.isIssueOwner }">
+		<div class="comment media" ng-repeat="comment in commentVm.comments track by comment.id" ng-class="{ 'my-comment': comment.isIssueOwner }" ng-attr-id="{{ 'stab-github-comment-' + comment.id }}">
 			<div class="media-left">
 				<img ng-attr-src="{{ comment.user.avatar_url }}" />
 			</div>
@@ -15,10 +15,10 @@
 				<h4>
 					<a href="https://github.com/{{ comment.user.login }}" target="_blank">{{ comment.user.login }}</a>
 					<span ng-if="comment.isIssueOwner" class="label label-info">Owner</span>
-					<span ng-if="comment.isDeletable" ng-show="!comment.isEditing;" ng-model="comment.bodyOrg" ng-click="comment.bodyOrg = comment.body; comment.isEditing = true;"  class="label label-warning">
+					<span ng-if="comment.isDeletable" ng-show="!comment.isEditing;" ng-model="comment.bodyOrg" ng-click="comment.bodyOrg = comment.body; comment.isEditing = true;"  class="label label-warning" ng-disabled="commentVm.isBusy">
 						Edit&nbsp;<span class="glyphicon glyphicon-edit"></span>
 					</span>
-					<span ng-if="comment.isDeletable" ng-show="!comment.isEditing;" ng-click="commentVm.deleteComment(comment)" class="label label-danger">
+					<span ng-if="comment.isDeletable" ng-show="!comment.isEditing;" ng-click="commentVm.deleteComment(comment);" class="label label-danger" ng-disabled="commentVm.isBusy">
 						Delete&nbsp;<span class="glyphicon glyphicon-remove"></span>
 					</span>
 					<small>wrote on {{ comment.created_at.toLocaleDateString() }} @ {{ comment.created_at.toLocaleTimeString() }}<span ng-if="comment.updated_at"> and updated on {{ comment.updated_at.toLocaleDateString() }} @ {{ comment.updated_at.toLocaleTimeString() }}</span></small>
@@ -27,7 +27,7 @@
 				<p ng-show="!comment.isEditing" btf-markdown="comment.body"></p>
 				<div ng-show="comment.isEditing" class="edit-comment-inplace">
 					<div>
-						<textarea ng-model="comment.body" ng-show="post.edit.createPostMode == 'write' || post.edit.createPostMode == 'both';" placeholder="Your comment goes here. Markdown is enabled. Be nice :)"></textarea>
+						<textarea ng-model="comment.body" ng-show="post.edit.createPostMode == 'write' || post.edit.createPostMode == 'both';" placeholder="Your comment goes here. Markdown is enabled. Be nice :)" ng-disabled="commentVm.isBusy"></textarea>
 						<div ng-show="post.edit.createPostMode == 'preview' || post.edit.createPostMode == 'both';">
 							<h6 ng-show="post.edit.createPostMode == 'both';">Preview:</h6>
 							<div btf-markdown="comment.body"></div>
@@ -36,7 +36,8 @@
 					<hr />
 					<div class="pull-right">
 						<div class="btn-group dropup" ng-model="post.edit.showCreatePostMode" ng-init="post.edit.showCreatePostMode = false" ng-class="{'open' : post.edit.showCreatePostMode }">
-							<button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" ng-click="post.edit.showCreatePostMode = !post.edit.showCreatePostMode">Mode: <i>{{ post.edit.createPostMode }}</i>&nbsp;<span class="caret"></span>
+							<button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" ng-click="post.edit.showCreatePostMode = !post.edit.showCreatePostMode" ng-disabled="commentVm.isBusy">
+								Mode: <i>{{ post.edit.createPostMode }}</i>&nbsp;<span class="caret"></span>
 							</button>
 							<ul class="dropdown-menu" ng-model="post.edit.createPostMode" ng-init="post.edit.createPostMode = 'write'">
 								<li ng-click="post.edit.showCreatePostMode = false; post.edit.createPostMode = 'write';" ng-class="{'active': post.edit.createPostMode == 'write'}"><a href>Write</a></li>
@@ -44,8 +45,8 @@
 								<li ng-click="post.edit.showCreatePostMode = false; post.edit.createPostMode = 'both';" ng-class="{'active': post.edit.createPostMode == 'both'}"><a href>Both</a></li>
 							</ul>
 						</div>
-						<button ng-if="commentVm.isAuthorized" type="button" class="btn" ng-click="comment.isEditing = false; comment.body = comment.bodyOrg;">Discard changes</button>
-						<button ng-if="commentVm.isAuthorized" type="button" class="btn btn-primary" ng-click="commentVm.patchComment(comment);">Update comment</button>
+						<button ng-if="commentVm.isAuthorized" type="button" class="btn" ng-click="comment.isEditing = false; comment.body = comment.bodyOrg;" ng-disabled="commentVm.isBusy">Discard changes</button>
+						<button ng-if="commentVm.isAuthorized" type="button" class="btn btn-primary" ng-click="commentVm.patchComment(comment);" ng-disabled="commentVm.isBusy">Update comment</button>
 						</button>
 					</div>
 				</div>

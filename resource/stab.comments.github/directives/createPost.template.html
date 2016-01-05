@@ -13,6 +13,7 @@
 				<div btf-markdown="post.commentBody"></div>
 			</div>
 		</div>
+		<hr />
 		<div class="pull-right">
 			<div ng-if="commentVm.isAuthorized" class="btn-group dropup" ng-model="post.showCreatePostMode" ng-init="post.showCreatePostMode = false" ng-class="{'open' : post.showCreatePostMode }">
 				<button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" ng-click="post.showCreatePostMode = !post.showCreatePostMode" ng-disabled="createPostVm.isBusy">Mode: <i>{{ post.createPostMode }}</i>&nbsp;<span class="caret"></span>
@@ -25,7 +26,7 @@
 			</div>
 			<button ng-if="commentVm.isAuthorized" type="button" class="btn" ng-click="createPostVm.postComment(post.commentBody);" ng-disabled="createPostVm.isBusy">Post comment</button>
 			<span ng-if="commentVm.isWaitingForAuthorization">Waiting for authorization.. </span>
-			<button ng-if="!commentVm.isAuthorized" ng-disabled="commentVm.isWaitingForAuthorization || createPostVm.isBusy" type="button" class="btn btn-primary" ng-click="commentVm.tryAuthorize()">
+			<button ng-if="!commentVm.isAuthorized" ng-disabled="commentVm.isWaitingForAuthorization || createPostVm.isBusy" type="button" class="btn btn-primary" ng-click="commentVm.tryAuthorize();">
 				Authorize&nbsp;<span class="glyphicon glyphicon-log-in"></span>
 			</button>
 		</div>
