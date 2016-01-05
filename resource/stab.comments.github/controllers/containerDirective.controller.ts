@@ -11,6 +11,8 @@ module Blog.Article.Comments {
 		public isAuthorized: boolean = false;
 		public isWaitingForAuthorization: boolean = false;
 		public authenticatedUser: Common.GithubCommenter = null;
+		public allowCommentEdit: boolean = false;
+		public allowCommentDelete: boolean = false;
 		public mobileMode: string = null; // 'xs' or 'sm' are valid mobile modes, null otherwise
 
 		/**
@@ -46,11 +48,13 @@ module Blog.Article.Comments {
 		/**
 		 * Used as dependecy-injected factory.
 		 */
-		public static inlineAnnotatedConstructor: any[] = ['$scope', '$q', 'StabGithubCommentsService', 'StabGithubCommentsAuthorizationService', 'StabGithubCommentsUserService', StabGithubCommentsContainerDirectiveController];
+		public static inlineAnnotatedConstructor: any[] = ['$scope', '$q', 'CONFIG_COMMENTS', 'StabGithubCommentsService', 'StabGithubCommentsAuthorizationService', 'StabGithubCommentsUserService', StabGithubCommentsContainerDirectiveController];
 
-		public constructor(private $scope: StabGithubCommentsContainerDirectiveControllerScope, private $q: angular.IQService, private commentService: StabGithubCommentsService, private authService: StabGithubCommentsAuthorizationService, private userService: StabGithubCommentsUserService) {
+		public constructor(private $scope: StabGithubCommentsContainerDirectiveControllerScope, private $q: angular.IQService, private configComments: Common.Constants, private commentService: StabGithubCommentsService, private authService: StabGithubCommentsAuthorizationService, private userService: StabGithubCommentsUserService) {
 			this._issueUrl = $scope.issueUrl;
 			this._isBusy = true;
+			this.allowCommentEdit = configComments.get<boolean>('ALLOW_COMMENT_EDIT');
+			this.allowCommentDelete = configComments.get<boolean>('ALLOW_COMMENT_DELETE');
 
 			// Load the comments by first loading the issue:
 			const promise_issue = commentService.issueByUrl(this.issueUrl).then(optIssue => {
