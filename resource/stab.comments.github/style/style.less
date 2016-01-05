@@ -1,5 +1,9 @@
 /* Styles for the whole comment-wrapper: */
 div#stab-github-comments-container {
+	div.jumbotron {
+		margin-top: 2em;
+	}
+	
 	> hr:first-child {
 		+ h3 {
 			margin:1.5em 0;
@@ -14,6 +18,7 @@ div#stab-github-comments-container {
 		> div.comment {
 			&.media {
 				margin-top: 2.5em;
+				border-radius: 4px;
 				
 				&:first-of-type {
 					margin-top: 0;
@@ -96,10 +101,17 @@ div#stab-github-comments-container {
 /* /Wrapper */
 
 /* Styles for creating a Post: */
-div#create-post {
+div#create-post {	
+	hr {
+		border-top-color: #fff;
+		margin: .5em 0 .5em;
+	}
+
 	> div:first-child {
 		padding:1ex;
 		background-color:#f4f4f4;
+		border-radius: 4px;
+
 		> div:first-child {
 			background-color:#eee;
 			
