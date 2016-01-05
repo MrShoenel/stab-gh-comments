@@ -11,6 +11,7 @@ module Blog.Article.Comments {
 		public isAuthorized: boolean = false;
 		public isWaitingForAuthorization: boolean = false;
 		public authenticatedUser: Common.GithubCommenter = null;
+		public mobileMode: string = null; // 'xs' or 'sm' are valid mobile modes, null otherwise
 
 		/**
 		 * Used to indicate whether this controller is currently busy. Note that
@@ -77,6 +78,8 @@ module Blog.Article.Comments {
 			$q.all([ promise_issue, promise_auth ]).finally(() => {
 				this._isBusy = false;
 			});
+
+			this.mobileMode = (window.innerWidth < 400 ? 'xs' : (window.innerWidth < 768 ? 'sm' : null));
 		};
 
 		////////////////////////////////

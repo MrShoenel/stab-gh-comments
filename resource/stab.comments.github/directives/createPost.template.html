@@ -1,7 +1,9 @@
 <div id="create-post">
 	<div>
 		<div>
-			<h4 ng-if="commentVm.isAuthorized" style="background-image:url({{ commentVm.authenticatedUser.avatar_url }});">{{ commentVm.authenticatedUser.login }}</h4>
+			<div>
+				<h4 ng-if="commentVm.isAuthorized" style="background-image:url({{ commentVm.authenticatedUser.avatar_url }});">{{ commentVm.authenticatedUser.login }}</h4>
+			</div>
 			<small ng-if="!commentVm.isAuthorized">
 				You need to sign in to Github and authorize this app for commenting.
 			</small>
@@ -26,7 +28,7 @@
 			</div>
 			<button ng-if="commentVm.isAuthorized" type="button" class="btn" ng-click="createPostVm.postComment(post.commentBody);" ng-disabled="createPostVm.isBusy">Post comment</button>
 			<span ng-if="commentVm.isWaitingForAuthorization">Waiting for authorization.. </span>
-			<button ng-if="!commentVm.isAuthorized" ng-disabled="commentVm.isWaitingForAuthorization || createPostVm.isBusy" type="button" class="btn btn-primary" ng-click="commentVm.tryAuthorize();">
+			<button ng-if="!commentVm.isAuthorized" ng-disabled="commentVm.isWaitingForAuthorization || createPostVm.isBusy" type="button" class="btn btn-primary" ng-click="commentVm.tryAuthorize();" role="authorize">
 				Authorize&nbsp;<span class="glyphicon glyphicon-log-in"></span>
 			</button>
 		</div>
