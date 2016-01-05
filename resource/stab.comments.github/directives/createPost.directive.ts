@@ -28,5 +28,8 @@ module Blog.Article.Comments {
 	 * the parent directive's VM as well.
 	 */
 	export interface StabGithubCommentsCreatePostDirectiveControllerScope extends StabGithubCommentsContainerDirectiveControllerScope {
+		post: {
+			commentBody: string;
+		};
 	};
 };
