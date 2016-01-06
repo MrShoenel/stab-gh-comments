@@ -28,9 +28,10 @@
 			</div>
 			<button ng-if="commentVm.isAuthorized" type="button" class="btn" ng-click="createPostVm.postComment(post.commentBody);" ng-disabled="createPostVm.isBusy">Post comment</button>
 			<span ng-if="commentVm.isWaitingForAuthorization">Waiting for authorization.. </span>
-			<button ng-if="!commentVm.isAuthorized" ng-disabled="commentVm.isWaitingForAuthorization || createPostVm.isBusy" type="button" class="btn btn-primary" ng-click="commentVm.tryAuthorize();" role="authorize">
+			<button ng-if="commentVm.isWaitingForAuthorization" type="button" class="btn" ng-click="commentVm.isWaitingForAuthorization = false;" role="authorize-abort">Abort</button>
+			<a ng-if="!commentVm.isAuthorized" ng-hide="commentVm.isWaitingForAuthorization" ng-disabled="commentVm.isWaitingForAuthorization || createPostVm.isBusy" type="button" class="btn btn-primary" ng-click="commentVm.isWaitingForAuthorization && $event.preventDefault(); commentVm.tryAuthorize();" role="authorize" href="{{ commentVm.authorizationUrl }}" target="_blank">
 				Authorize&nbsp;<span class="glyphicon glyphicon-log-in"></span>
-			</button>
+			</a>
 		</div>
 		<div class="clearfix"></div>
 	</div>

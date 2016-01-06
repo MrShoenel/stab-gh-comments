@@ -15,6 +15,14 @@ module Blog.Article.Comments {
 		};
 
 		/**
+		 * Deferred that resolves when there is a valid token in the
+		 * localStorage.
+		 * @see this.pollLocalStorage(..)
+		 */
+		private localStorageDeferred: angular.IDeferred<string> =
+			this.$q.defer<string>();
+
+		/**
 		 * Property which we use to check if the localStorage is available. We
 		 * use it to store the access token.
 		 */
@@ -87,64 +95,15 @@ module Blog.Article.Comments {
 		public get accessTokenUsingExistingAuthorizationOrAuthorize(): angular.IPromise<Common.Optional<string>> {
 			return this.isUserAuthorized.then(isAuthorizedOrNot => {
 				if (isAuthorizedOrNot) {
+					this.userAuthorizedDeferred.resolve();
 					return this.accessToken;
 				}
 
-				return this.authorize().then(isAuthorized => {
-					if (isAuthorized) {
-						this.userAuthorizedDeferred.resolve();
-						return this.accessToken;
-					}
-					return new Common.Optional<string>();
-					// [SIC!] return isAuthorized ? new Common.Optional<string>() : this.accessToken;
-				});
-			});
-		};
-
-		/**
-		 * This function retrieves a new state from the authorization app.
-		 */
-		private get state(): angular.IPromise<string> {
-			const appUrl = this.CONFIG.get<string>('OAUTH_AUTHORIZATION_APP_URL');
-			return this.$http.get<string>(appUrl + 'state').then(promiseCallbackArg => promiseCallbackArg.data);
-		};
-
-		/**
-		 * This method opens an authorization window in which the user can log
-		 * into Github and authorize the app to post comments on their behalf.
-		 * This is what happens chonologically:
-		 * - obtain a new state, then
-		 * - open the window to Github while
-		 * - starting to poll the localStorage for a token
-		 * - once present, check the integrity of the token and
-		 * - finally close the previously opened window.
-		 */
-		private authorize(): angular.IPromise<boolean> {
-			if (!StabGithubCommentsAuthorizationService.isLocalStorageAvailable) {
-				return this.$q.when(false);
-			}
-
-			return this.state.then(state => {
-				const clientId = this.CONFIG.get<string>('OAUTH_CLIENT_ID'),
-					scopes = this.CONFIG.get<string[]>('OAUTH_SCOPES').join(','),
-					blogUrl = this.authCallbackAbsolutePath,
-					redirectUri = encodeURIComponent(this.CONFIG.get<string>('OAUTH_AUTHORIZATION_APP_URL') + 'authorize/?blog_url=' + blogUrl);
-
-				var wnd: Window = window.open('https://github.com/login/oauth/authorize'
-					+ '?client_id=' + clientId
-					+ '&state=' + state
-					+ '&scope=' + scopes
-					+ '&redirect_uri=' + redirectUri,
-					'_blank');
-
-				// Now we poll the localStorage for the token and resolve once it's there:
 				return this.pollLocalStorage().then(token => {
-					return this.isUserAuthorized;
-				}).finally(() => {
-					wnd.close();
+					return this.isUserAuthorized.then(isAuthorizedOrNot => {
+						return new Common.Optional<string>(isAuthorizedOrNot ? token : null);
+					});
 				});
-			}).catch(() => {
-				return false;
 			});
 		};
 
@@ -157,32 +116,29 @@ module Blog.Article.Comments {
 				return this.$q.when<string>(null);
 			}
 
-			if (this.localStorageInterval !== null) {
-				throw new Error('You may only call this function once.');
+			// Check for token every 50ms
+			if (this.localStorageInterval === null) {
+				this.localStorageInterval = setInterval(() => {
+					var token = this.accessToken;
+					if (token.isPresent) {
+						clearInterval(this.localStorageInterval);
+						this.localStorageInterval = null;
+						this.localStorageDeferred.resolve(token.get);
+					}
+				}, mSecs);
 			}
 
-			// Check for token every 50ms
-			const defer = this.$q.defer<string>();
-			this.localStorageInterval = setInterval(() => {
-				var token = this.accessToken;
-				if (token.isPresent) {
-					clearInterval(this.localStorageInterval);
-					this.localStorageInterval = null;
-					defer.resolve(token.get);
-				}
-			}, mSecs);
-
-			return defer.promise;
+			return this.localStorageDeferred.promise;
 		};
 
 		/**
 		 * This getter returns the absolute path to our authorization-callback file.
 		 * It is assumend to be within the same directory as this comments module.
 		 */
-		private get authCallbackAbsolutePath(): string {
+		public get authCallbackAbsolutePath(): string {
 			const fileName = this.CONFIG.get<string>('OAUTH_HTML_CALLBACK_FILE');
 			let pathHere = (<Element[]>Array.prototype.slice.call(document.querySelectorAll('script'), 0)).filter((elem: Element) => {
-				return elem.getAttribute('src').indexOf('stab.comments.github') >= 0;
+				return elem.hasAttribute('src') && (elem.getAttribute('src') + '').indexOf('stab.comments.github') >= 0;
 			})[0].getAttribute('src');
 
 			pathHere = pathHere.substring(0, pathHere.lastIndexOf('/')) + '/';

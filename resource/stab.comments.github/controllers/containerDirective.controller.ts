@@ -15,6 +15,25 @@ module Blog.Article.Comments {
 		public allowCommentDelete: boolean = false;
 		public mobileMode: string = null; // 'xs' or 'sm' are valid mobile modes, null otherwise
 
+    /**
+     * Returns an URL that points to the authorization-app's state-path
+		 * so that we can get a state in the first place. Then we get re-
+		 * directed to Github from that app. 
+     */
+		public get authorizationUrl(): string {
+			const clientId = this.configComments.get<string>('OAUTH_CLIENT_ID'),
+				scopes = this.configComments.get<string[]>('OAUTH_SCOPES').join(','),
+				authAppUrl = this.configComments.get<string>('OAUTH_AUTHORIZATION_APP_URL') + 'state',
+				blogUrl = this.authService.authCallbackAbsolutePath,
+				redirectUri = encodeURIComponent(this.configComments.get<string>('OAUTH_AUTHORIZATION_APP_URL') + 'authorize/?blog_url=' + blogUrl);
+
+				return authAppUrl + '?authorize_at=' +
+					encodeURIComponent('https://github.com/login/oauth/authorize'
+					+ '?client_id=' + clientId
+					+ '&scope=' + scopes
+					+ '&redirect_uri=' + redirectUri);
+		};
+
 		/**
 		 * Used to indicate whether this controller is currently busy. Note that
 		 * this returns true if this controller or its parent-controller is busy.
