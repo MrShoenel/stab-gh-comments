@@ -104,9 +104,34 @@ module Blog.Article.Comments {
 			$q.all([ promise_issue, promise_auth ]).finally(() =>  this._isBusy--);
 
 			this.mobileMode = (window.innerWidth < 400 ? 'xs' : (window.innerWidth < 768 ? 'sm' : null));
+
+			// Now check if we gotta use realtime-comments:
+			this.configureRealtimeComments();
+		};
+
+		/**
+		 * 
+		 */
+		private configureRealtimeComments(): void {
+			if (this.configComments.get<boolean>('ENABLE_REALTIME_COMMENTS')) {
+				const glowTime = this.configComments.get<number>('RTCOMM_GLOW_TIME');
+
+				this.commentService.addCallbackForNewComments(() => {
+					if (!confirm('There are new comments, would you like to load and see them?')) {
+						return;
+					}
+
+					this._isBusy++;
+					this.commentService.commentsForIssueByUrl(this.issueUrl).then(() => {
+						// scroll to comments-list
+						this.$anchorScroll('comments-list');
+						// set timeout to remove class for glow-time
 						this.$timeout(glowTime + 100).then(() => {
 							this.issue.comments.forEach(comment => comment.isNew = false);
 						});
+					}).finally(() => this._isBusy--);
+				});
+			}
 		};
 
 		////////////////////////////////
