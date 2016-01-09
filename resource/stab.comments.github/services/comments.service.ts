@@ -39,6 +39,7 @@ module Blog.Article.Comments {
 			return this.$http.get<Common.GithubIssue>(issueApiUrl).then(promiseCallbackArg => {
 				const issue = promiseCallbackArg.data;
 				issue.isOpen = issue.state === 'open';
+				issue.commentsLoadedInitially = false;
 				issue.comments = [];
 				this.issueCache.put(issueUrl, issue);
 				return new Common.Optional(issue);
@@ -130,7 +131,16 @@ module Blog.Article.Comments {
 				} else {
 					// Else we can just set the comments:
 					optIssue.get.comments = processedComments;
+				// Now set the 'isNew'-flag on all new comments:
+				if (optIssue.get.commentsLoadedInitially) { // avoid highlighting the initial comments
+					processedComments
+						.filter(c => optIssue.get.comments.filter(oldC => oldC.id === c.id).length === 0)
+						.forEach(c => c.isNew = true);
 				}
+
+				// Set the processed comments now to the existing issue:
+				optIssue.get.comments = processedComments;
+				optIssue.get.commentsLoadedInitially = true;
 
 				return new Common.Optional<Common.GithubComment[]>(optIssue.get.comments);
 			});

@@ -194,6 +194,8 @@ module Common {
 		isOpen: boolean;
 
 		comments: GithubComment[];
+		// Should be set to true once the issue's comments had been loaded the first time.
+		commentsLoadedInitially: boolean;
 
 		// Will be populated for convenience reasons:
 		user: GithubCommenter;
