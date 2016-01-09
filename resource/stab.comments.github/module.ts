@@ -38,6 +38,19 @@ module Blog.Article.Comments {
 					// Other configuration constants:
 					.add('ALLOW_COMMENT_EDIT', true)
 					.add('ALLOW_COMMENT_DELETE', true)
+
+					// If true, will notify users of new comments. Note that, for this to work,
+					// you will have to specify a webhook for your repository pointing to a
+					// realtime-capable app that will forward everything through WebSocket.
+					.add('ENABLE_REALTIME_COMMENTS', false)
+					// The ID we use for the webhook. Can be a URL.
+					.add('RTCOMM_PAGE_ID', 'mrshoenel-github-io-comments')
+					// The full URL to the WebSocket-notifier of the Webhook. We will append the
+					// RTCOMM_PAGE_ID url-encoded to that later so make sure it's complete.
+					.add('RTCOMM_HTML_REALTIME_WEBSOCKET_APP_URL',
+						'wss://github-realtime-webhook.herokuapp.com/ws-notify?page=')
+					// For how many milliseconds new comments should 'glow' in the UI.
+					.add('RTCOMM_GLOW_TIME', 5000)
 			).config(['$anchorScrollProvider', (
 				$anchorScrollProvider: angular.IAnchorScrollProvider
 			) => {
