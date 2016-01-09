@@ -43,27 +43,6 @@ module Common {
 	};
 
 	/**
-	 * Generic interface that can be implemented on arbitrary types
-	 * to determine equality.
-	 */
-	export interface Equatable<T> {
-		equals(other: T): boolean;
-	};
-
-	/**
-	 * Interface to be implemented by specialized comparers. Especially
-	 * useful if the types to compare do not have an actual implementation.
-	 */
-	export interface EqualityComparer<T> {
-		/**
-		 * Returns true if both instances are equal. If the instances given
-		 * implement Equatable<T> then this method is used to determine
-		 * equality.
-		 */
-		equals(a: T | Equatable<T>, b: T | Equatable<T>): boolean;
-	};
-
-	/**
 	 * We use this for comment-ordering and other purposes.
 	 */
 	export enum SortOrder {
@@ -133,51 +112,6 @@ module Common {
 		isDeletable: boolean;
 		// Will be temporarily set to true if loaded from Github again.
 		isNew: boolean;
-	};
-
-	/**
-	 * Class to compare two comments from Github.
-	 */
-	export class GithubCommentEqualityComparer implements EqualityComparer<GithubComment> {
-		/**
-		 * Hashes a String similar to how it's done in Java.
-		 * 
-		 * @return number the hash-value of the string given.
-		 */
-		public static hash(value: string): number {
-			value = value + '';
-			var hash = 0;
-			if (value.length === 0) {
-				return hash;
-			}
-
-			for (var i = 0; i < value.length; i++) {
-				var char = value.charCodeAt(i);
-				hash = ((hash << 5) - hash) + char;
-				hash = hash & hash; // Convert to 32bit integer
-			}
-
-			return hash;
-		};
-
-		/**
-		 * Equates two GithubComments and returns true if the following
-		 * conditions are met:
-		 * - same ID, Url, hash of content, creation- and update-timestamps
-		 * 
-		 * @return boolean true, if the conditions are met; false, otherwise.
-		 */
-		public equals(a: GithubComment, b: GithubComment): boolean {
-			var hash = GithubCommentEqualityComparer.hash;
-
-			return a.id === b.id &&
-				a.url === b.url &&
-				hash(a.body) === hash(b.body) &&
-				a.created_at.getTime() === b.created_at.getTime() &&
-				(a.updated_at === null && b.updated_at === null ? true :
-					(a.updated_at.getTime() === (b.updated_at === null ? null : b.updated_at.getTime()))
-				);
-		};
 	};
 
 	/**
