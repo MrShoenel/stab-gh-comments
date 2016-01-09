@@ -1,8 +1,8 @@
 #stab-gh-comments
 
-This is an additional module for [***Stab***](https://github.com/MrShoenel/stab) which allows you to facilitate Github's Issue comments for articles which you blog using Stab. To see it in action, you may visit my [personal](https://mrshoenel.github.io/) blog.
+This is an additional module for [***Stab***](https://github.com/MrShoenel/stab) which allows you to facilitate Github's Issue comments for articles in *realtime* which you blog using Stab. To see it in action, you may visit my [personal](https://mrshoenel.github.io/) blog.
 
-This whole comment module is currently less than **60 KB** in size! It is fully fledged, embedded into *Stab* it can do the following:
+This whole comment module is currently less than **60 KB** in size! It is fully fledged and embedded into *Stab* it can do the following:
 
 * List all comments for an Issue
 * Create new comments
@@ -15,6 +15,8 @@ This whole comment module is currently less than **60 KB** in size! It is fully 
 	* During authorization, wait's for the user to finish, then closes the window, enables the form, loads details from Github etc.
 	* When posting: Adds posts directly to the thread and jumps to them!
 	* When editing: Make edits to your comments *in-place*, with instant preview.
+* ***NEW*** in v1.3.1:
+	* *Realtime comments*: stab-gh-comments now can use WebSocket to be notified of new comments while you're viewing existing comments. This can be disabled. You will need to set up a Github-Webhook and use an application to forward those messages via Webhook. Therefore I created [**Github Realtime Webhook**](https://github.com/MrShoenel/github-realtime-webhook) and I also provide a free hosted instance on [*heroku*](https://github-realtime-webhook.herokuapp.com) which you are welcome to use.
 	
 **See images of all this below!**
 
