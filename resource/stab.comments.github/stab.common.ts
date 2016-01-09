@@ -43,6 +43,27 @@ module Common {
 	};
 
 	/**
+	 * Generic interface that can be implemented on arbitrary types
+	 * to determine equality.
+	 */
+	export interface Equatable<T> {
+		equals(other: T): boolean;
+	};
+
+	/**
+	 * Interface to be implemented by specialized comparers. Especially
+	 * useful if the types to compare do not have an actual implementation.
+	 */
+	export interface EqualityComparer<T> {
+		/**
+		 * Returns true if both instances are equal. If the instances given
+		 * implement Equatable<T> then this method is used to determine
+		 * equality.
+		 */
+		equals(a: T | Equatable<T>, b: T | Equatable<T>): boolean;
+	};
+
+	/**
 	 * We use this for comment-ordering and other purposes.
 	 */
 	export enum SortOrder {
