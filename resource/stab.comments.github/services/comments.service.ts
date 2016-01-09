@@ -14,9 +14,9 @@ module Blog.Article.Comments {
 		/**
 		 * Used as dependecy-injected factory.
 		 */
-		public static inlineAnnotatedConstructor: any[] = ['$http', '$q', '$cacheFactory', 'StabGithubCommentsAuthorizationService', 'StabGithubCommentsUserService', StabGithubCommentsService];
+		public static inlineAnnotatedConstructor: any[] = ['$http', '$q', '$cacheFactory', 'CONFIG_COMMENTS', 'StabGithubCommentsAuthorizationService', 'StabGithubCommentsUserService', StabGithubCommentsService];
 
-		public constructor(private $http: angular.IHttpService, private $q: angular.IQService, private $cacheFactoryService: angular.ICacheFactoryService, private authService: StabGithubCommentsAuthorizationService, private userService: StabGithubCommentsUserService) {
+		public constructor(private $http: angular.IHttpService, private $q: angular.IQService, private $cacheFactoryService: angular.ICacheFactoryService, private configComments: Common.Constants, private authService: StabGithubCommentsAuthorizationService, private userService: StabGithubCommentsUserService) {
 			this.issueCache = $cacheFactoryService('issues');
 		};
 
@@ -102,10 +102,37 @@ module Blog.Article.Comments {
 				}).sort((a, b) => Date.parse(a[sortBy === 'created' ? 'created_at' : 'updated_at']) > Date.parse(b[sortBy === 'created' ? 'created_at' : 'updated_at']) ? (order === Common.SortOrder.ASC ? 1 : -1) : (order === Common.SortOrder.ASC ? -1 : 1));
 				this.setCommentDeletableFlag(processedComments);
 
-				// Set the comments to the issue:
-				optIssue.get.comments = processedComments;
+				// Set the comments to the issue. Note that, if we call this whole
+				// method again to e.g. fetch new comments, we must check not to
+				// replace comments currently editing.
+				if (this.configComments.get<boolean>('ALLOW_COMMENT_EDIT')
+					&& angular.isArray(optIssue.get.comments) && optIssue.get.comments.length > 0) {
+					for (var i = 0; i < optIssue.get.comments.length; i++) {
+						const oldComment = <Common.GithubComment & Common.EditableComment>optIssue.get.comments[i];
+						const comparer = new Common.GithubCommentEqualityComparer();
 
-				return new Common.Optional<Common.GithubComment[]>(processedComments);
+						if (oldComment.hasOwnProperty('isEditing') && oldComment.isEditing) {
+							continue; // do not replace this one
+						} else {
+							// replace comment if it is new:
+							const newComment = processedComments.filter(procComm => {
+								return procComm.id === optIssue.get.comments[i].id;
+							})[0];
+
+							if (!comparer.equals(oldComment, newComment)) {
+								// .. then replace:
+								optIssue.get.comments[i] = newComment;
+								// The controller needs to reset this later:
+								optIssue.get.comments[i].isNew = true;
+							}
+						}
+					}
+				} else {
+					// Else we can just set the comments:
+					optIssue.get.comments = processedComments;
+				}
+
+				return new Common.Optional<Common.GithubComment[]>(optIssue.get.comments);
 			});
 		};
 
@@ -297,6 +324,51 @@ module Blog.Article.Comments {
 			comment.isIssueOwner = comment.user.id === issue.user.id;
 			comment.isDeletable = false; // default, will update once user is there
 			return comment;
+		};
+
+		/**
+		 * An array of callback which will be simply notified once there are
+		 * new comments.
+		 */
+		private newCommentsCallbacks: Function[] = [];
+
+		/**
+		 * Use this function to add callbacks to the queue that will be notified
+		 * of new comments.
+		 * 
+		 * @param Function callback a callable Function that will get invoked.
+		 */
+		public addCallbackForNewComments(callback: Function): StabGithubCommentsService {
+			this.newCommentsCallbacks.push(callback);
+			if (this.newCommentsCallbacks.length === 1) {
+				// Set up once we have at least one callback.
+				this.setUpRealtimeComments();
+			}
+			return this;
+		}
+
+		/**
+		 * Used to set up the connection to realtime WebSocket app that will
+		 * notify us of new comments.
+		 */
+		private setUpRealtimeComments(): void {
+			const enableRealtimeComments = this.configComments.get<boolean>('ENABLE_REALTIME_COMMENTS');
+			const realtimeUrl =
+				this.configComments.get<string>('RTCOMM_HTML_REALTIME_WEBSOCKET_APP_URL') +
+				encodeURIComponent(this.configComments.get<string>('RTCOMM_PAGE_ID'));
+
+			let socket: WebSocket = null;
+			window.setInterval(() => {
+				if (!(socket instanceof WebSocket) || socket.readyState !== WebSocket.OPEN) {
+					try {
+						socket = new WebSocket(realtimeUrl);
+						socket.onmessage = (evt: MessageEvent) => {
+							// Asynchronously call all callbacks:
+							this.newCommentsCallbacks.forEach(c => window.setTimeout(c(evt.data), 0));
+						};
+					} catch (e) { }
+				}
+			}, 1000); // Will (re-)open the socket if down.
 		};
 	};
 
