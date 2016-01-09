@@ -131,6 +131,10 @@ module Common {
 		isIssueOwner: boolean;
 		// Only true if a comment was created by the current user.
 		isDeletable: boolean;
+		// Will be temporarily set to true if loaded from Github again.
+		isNew: boolean;
+	};
+
 	/**
 	 * Class to compare two comments from Github.
 	 */

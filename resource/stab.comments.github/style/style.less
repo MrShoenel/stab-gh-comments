@@ -1,4 +1,8 @@
 /* Styles for the whole comment-wrapper: */
+@keyframes animation_new_comment {
+	from { background-color: darkorange }
+	to { background-color:#f2f2f2 }
+}
 div#stab-github-comments-container {
 	div.jumbotron {
 		margin-top: 2em;
@@ -40,6 +44,10 @@ div#stab-github-comments-container {
 			div.media-body {
 				padding: 0 .5ex .5ex;
 				background-color: #f2f2f2;
+			
+				&.is-new {
+					animation: 5s animation_new_comment;
+				}
 				
 				h4 {
 					margin: .5ex auto 0;

@@ -103,6 +103,9 @@ module Blog.Article.Comments {
 			});
 
 			this.mobileMode = (window.innerWidth < 400 ? 'xs' : (window.innerWidth < 768 ? 'sm' : null));
+						this.$timeout(glowTime + 100).then(() => {
+							this.issue.comments.forEach(comment => comment.isNew = false);
+						});
 		};
 
 		////////////////////////////////
