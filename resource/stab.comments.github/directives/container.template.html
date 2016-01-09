@@ -16,7 +16,7 @@
 					<a href="https://github.com/{{ comment.user.login }}" target="_blank">{{ comment.user.login }}</a>
 					<span ng-if="comment.isIssueOwner" class="label label-info">Owner</span>
 					<div class="pull-right controls-extra" ng-if="commentVm.isAuthorized">
-						<span ng-if="commentVm.allowCommentEdit && comment.isDeletable" ng-show="!comment.isEditing;" ng-model="comment.ng-show="!comment.isEditing;" ng-model="commentbodyOrg" ng-click="comment.bodyOrg = Org" ng-click="comment.bodyOrg = comment.body; comment.isEditing = true;"  class="label label-warning" ng-disabled="commentVm.isBusy">
+						<span ng-if="commentVm.allowCommentEdit && comment.isDeletable" ng-show="!comment.isEditing;" ng-click="comment.bodyOrg = comment.body; comment.isEditing = true;" class="label label-warning" ng-disabled="commentVm.isBusy">
 							Edit&nbsp;<span class="glyphicon glyphicon-edit"></span>
 						</span>
 						<span ng-if="commentVm.allowCommentDelete && comment.isDeletable" ng-show="!comment.isEditing;" ng-click="commentVm.deleteComment(comment);" class="label label-danger" ng-disabled="commentVm.isBusy">

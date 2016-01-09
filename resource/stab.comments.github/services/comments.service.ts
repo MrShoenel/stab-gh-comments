@@ -79,7 +79,7 @@ module Blog.Article.Comments {
 			issueUrl = StabGithubCommentsService.normalizeIssueUrl(issueUrl);
 			const issueApiUrl = StabGithubCommentsService.toApiIssueUrl(issueUrl);
 			const promiseIssue = this.issueByUrl(issueUrl);
-			const promiseComments = this.$http.get<Common.GithubComment[]>(issueApiUrl + '/comments', {
+			const promiseComments = this.$http.get<Common.GithubComment[]>(issueApiUrl + '/comments?r=' + Math.random(), {
 				params: {
 					sort: sortBy === 'created' ? sortBy : 'updated',
 					direction: order === Common.SortOrder.ASC ? 'asc' : 'desc',
@@ -108,29 +108,21 @@ module Blog.Article.Comments {
 				// replace comments currently editing.
 				if (this.configComments.get<boolean>('ALLOW_COMMENT_EDIT')
 					&& angular.isArray(optIssue.get.comments) && optIssue.get.comments.length > 0) {
-					for (var i = 0; i < optIssue.get.comments.length; i++) {
-						const oldComment = <Common.GithubComment & Common.EditableComment>optIssue.get.comments[i];
-						const comparer = new Common.GithubCommentEqualityComparer();
 
-						if (oldComment.hasOwnProperty('isEditing') && oldComment.isEditing) {
-							continue; // do not replace this one
-						} else {
-							// replace comment if it is new:
-							const newComment = processedComments.filter(procComm => {
-								return procComm.id === optIssue.get.comments[i].id;
-							})[0];
+					// There are comments which are probably currently being updated,
+					// and we must not replace those.
+					const editingComments = optIssue.get.comments.filter(c => (c as Common.GithubComment & Common.EditableComment).isEditing);
 
-							if (!comparer.equals(oldComment, newComment)) {
-								// .. then replace:
-								optIssue.get.comments[i] = newComment;
-								// The controller needs to reset this later:
-								optIssue.get.comments[i].isNew = true;
-							}
+					editingComments.forEach(editingComment => {
+						const idx = processedComments
+							.map((c, idx) => { return { idx, c }; }).filter(o => o.c.id === editingComment.id);
+
+						if (idx.length > 0) {
+							processedComments[idx[0].idx] = editingComment;
 						}
-					}
-				} else {
-					// Else we can just set the comments:
-					optIssue.get.comments = processedComments;
+					});
+				}
+
 				// Now set the 'isNew'-flag on all new comments:
 				if (optIssue.get.commentsLoadedInitially) { // avoid highlighting the initial comments
 					processedComments

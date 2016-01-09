@@ -121,6 +121,10 @@ module Blog.Article.Comments {
 						return;
 					}
 
+					if (!this.$scope.$$phase) {
+						this.$scope.$digest();
+					}
+
 					this._isBusy++;
 					this.commentService.commentsForIssueByUrl(this.issueUrl).then(() => {
 						// scroll to comments-list
