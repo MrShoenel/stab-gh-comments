@@ -5,18 +5,18 @@
 	<stab-github-comments-create-post></stab-github-comments-create-post>
 	
 	<!-- the comments-list -->
-	<div ng-if="commentVm.comments.length > 0">
+	<div ng-if="commentVm.comments.length > 0" id="comments-list">
 		<hr id="poster-and-comments-separator" />
 		<div class="comment media" ng-repeat="comment in commentVm.comments track by comment.id" ng-class="{ 'my-comment': comment.isIssueOwner }" ng-attr-id="{{ 'stab-github-comment-' + comment.id }}">
 			<div class="media-left">
 				<img ng-attr-src="{{ comment.user.avatar_url }}" />
 			</div>
-			<div class="media-body">
+			<div class="media-body" ng-class="{ 'is-new': comment.isNew }">
 				<h4>
 					<a href="https://github.com/{{ comment.user.login }}" target="_blank">{{ comment.user.login }}</a>
 					<span ng-if="comment.isIssueOwner" class="label label-info">Owner</span>
 					<div class="pull-right controls-extra" ng-if="commentVm.isAuthorized">
-						<span ng-if="commentVm.allowCommentEdit && comment.isDeletable" ng-show="!comment.isEditing;" ng-model="comment.bodyOrg" ng-click="comment.bodyOrg = comment.body; comment.isEditing = true;"  class="label label-warning" ng-disabled="commentVm.isBusy">
+						<span ng-if="commentVm.allowCommentEdit && comment.isDeletable" ng-show="!comment.isEditing;" ng-model="comment.ng-show="!comment.isEditing;" ng-model="commentbodyOrg" ng-click="comment.bodyOrg = Org" ng-click="comment.bodyOrg = comment.body; comment.isEditing = true;"  class="label label-warning" ng-disabled="commentVm.isBusy">
 							Edit&nbsp;<span class="glyphicon glyphicon-edit"></span>
 						</span>
 						<span ng-if="commentVm.allowCommentDelete && comment.isDeletable" ng-show="!comment.isEditing;" ng-click="commentVm.deleteComment(comment);" class="label label-danger" ng-disabled="commentVm.isBusy">
