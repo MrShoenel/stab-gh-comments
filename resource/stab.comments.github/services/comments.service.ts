@@ -370,7 +370,7 @@ module Blog.Article.Comments {
 				const socketNeedsToReconnect =
 					!(socket instanceof WebSocket) ||
 					(socket.readyState !== WebSocket.CONNECTING && socket.readyState !== WebSocket.OPEN);
-				
+
 				if (socketNeedsToReconnect) {
 					try {
 						socket = new WebSocket(realtimeUrl);
