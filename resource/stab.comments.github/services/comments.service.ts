@@ -358,17 +358,32 @@ module Blog.Article.Comments {
 			const realtimeUrl =
 				this.configComments.get<string>('RTCOMM_HTML_REALTIME_WEBSOCKET_APP_URL') +
 				encodeURIComponent(this.configComments.get<string>('RTCOMM_PAGE_ID'));
+			const removeHandler = (socket?: WebSocket) => {
+				if (socket instanceof WebSocket) {
+					socket.onclose = () => socket.onmessage = null;
+					socket.onerror = () => socket.onmessage = null;
+				}
+			};
 
 			let socket: WebSocket = null;
 			window.setInterval(() => {
-				if (!(socket instanceof WebSocket) || socket.readyState !== WebSocket.OPEN) {
+				const socketNeedsToReconnect =
+					!(socket instanceof WebSocket) ||
+					(socket.readyState !== WebSocket.CONNECTING && socket.readyState !== WebSocket.OPEN);
+				
+				if (socketNeedsToReconnect) {
 					try {
 						socket = new WebSocket(realtimeUrl);
+
 						socket.onmessage = (evt: MessageEvent) => {
 							// Asynchronously call all callbacks:
 							this.newCommentsCallbacks.forEach(c => window.setTimeout(c(evt.data), 0));
 						};
-					} catch (e) { }
+
+						removeHandler(socket);
+					} catch (e) {
+						removeHandler(socket);
+					}
 				}
 			}, 1000); // Will (re-)open the socket if down.
 		};
